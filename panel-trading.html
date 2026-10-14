@@ -274,6 +274,24 @@ h3{font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:1rem
 .chip.ok{background:var(--gain-bg);color:var(--gain)}
 .chip.info{background:var(--surface-2);color:var(--accent)}
 .sig-top .who{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+
+/* Capturas: "Ya estoy dentro" */
+#p-analizar [hidden]{display:none!important}
+#ge-box input:disabled,#ge-box select:disabled{background:var(--surface-2);color:var(--fg);-webkit-text-fill-color:var(--fg);opacity:1}
+.idea{font-size:.95rem}
+.idea[data-e="vigente"] b{color:var(--gain)}
+.idea[data-e="debilitada"] b{color:var(--warn)}
+.idea[data-e="invalidada"] b{color:var(--loss)}
+.accion{border-radius:8px;padding:10px 12px;background:var(--surface-2);display:grid;gap:4px;min-width:0}
+.accion b{font-family:var(--f-display);font-stretch:108%;font-size:1.1rem;overflow-wrap:anywhere}
+.accion p{font-size:.9rem}
+.accion[data-a="salir"]{background:var(--loss-bg)}
+.accion[data-a="salir"] b{color:var(--loss)}
+.accion[data-a="ninguna"] b{color:var(--muted)}
+.ge-t td{white-space:normal;vertical-align:top}
+.ge-t th.n,.ge-t td.n{white-space:nowrap}
+.ge-t small{color:var(--muted);font-size:.78rem}
+.guia{margin:0;padding-left:22px;display:grid;gap:4px}
 </style>
 
 <div class="wrap">
@@ -326,21 +344,43 @@ h3{font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:1rem
     <!-- CAPTURAS -->
     <section data-panel="analizar" id="p-analizar" role="tabpanel" aria-labelledby="h-an" hidden>
       <h2 id="h-an">Analizar capturas</h2>
-      <p class="hint">Subí las capturas del mismo activo: diario (6–9 meses), 4H (4–6 semanas) y 15 min (últimas 2–3 sesiones). Claude propone entrada, stop y objetivos, y califica qué tan seguro es el setup según tus criterios.</p>
+      <div class="seg" role="radiogroup" aria-label="Tu situación">
+        <input type="radio" name="cap-modo" id="cap-modo-e" value="entrada" checked><label for="cap-modo-e">Busco entrada</label>
+        <input type="radio" name="cap-modo" id="cap-modo-d" value="dentro"><label for="cap-modo-d">Ya estoy dentro</label>
+      </div>
+      <p class="hint" id="cap-intro">Subí las capturas del mismo activo: diario (6–9 meses), 4H (4–6 semanas) y 15 min (últimas 2–3 sesiones). Claude propone entrada, stop y objetivos, y califica qué tan seguro es el setup según tus criterios.</p>
       <p class="notice" id="cap-no" hidden></p>
+      <div class="card" id="ge-box" hidden>
+        <div class="field"><label for="ge-pos">Posición</label><select id="ge-pos"></select></div>
+        <p class="hint" id="ge-pos-hint"></p>
+        <div class="fields" id="ge-campos" hidden>
+          <div class="field"><label for="ge-activo">Activo</label><input type="text" id="ge-activo" autocapitalize="characters" spellcheck="false" placeholder="Ticker"></div>
+          <div class="field"><label for="ge-dir">Dirección</label><select id="ge-dir"><option value="compra">Compra</option><option value="venta">Venta corta</option></select></div>
+          <div class="field"><label for="ge-entrada">Entrada</label><input type="text" class="num" inputmode="decimal" id="ge-entrada" placeholder="0,00"></div>
+          <div class="field"><label for="ge-unidades">Unidades abiertas</label><input type="text" class="num" inputmode="decimal" id="ge-unidades" placeholder="0"></div>
+          <div class="field"><label for="ge-stop">Stop vigente</label><input type="text" class="num" inputmode="decimal" id="ge-stop" placeholder="vacío = sin stop"></div>
+          <div class="field"><label for="ge-riesgo">Riesgo inicial ($)</label><input type="text" class="num" inputmode="decimal" id="ge-riesgo" placeholder="opcional"></div>
+          <div class="field"><label for="ge-tp1">TP1</label><input type="text" class="num" inputmode="decimal" id="ge-tp1" placeholder="opcional"></div>
+          <div class="field"><label for="ge-tp2">TP2</label><input type="text" class="num" inputmode="decimal" id="ge-tp2" placeholder="opcional"></div>
+        </div>
+        <div class="field"><label for="ge-ahora">Precio ahora en Quantfury</label><input type="text" class="num" inputmode="decimal" id="ge-ahora" placeholder="obligatorio"></div>
+        <div id="ge-check" aria-live="polite"></div>
+      </div>
       <div class="zona" id="cap-zona" tabindex="0" role="button" aria-label="Elegir capturas">
         <b>Tocá para elegir capturas</b><span id="cap-zona-sub">o arrastralas o pegalas acá</span>
       </div>
       <input type="file" id="cap-files" multiple accept="image/png,image/jpeg,image/webp,image/gif" hidden>
       <div class="thumbs" id="cap-thumbs"></div>
-      <div class="fields">
+      <div class="fields" id="cap-entrada-campos">
         <div class="field"><label for="cap-activo">Activo (opcional)</label><input type="text" id="cap-activo" autocapitalize="characters" spellcheck="false" placeholder="Ticker"></div>
         <div class="field"><label for="cap-dir">Dirección</label><select id="cap-dir"><option value="">Que decida Claude</option><option value="compra">Compra</option><option value="venta">Venta corta</option></select></div>
       </div>
+      <div id="cap-guia"></div>
       <div class="field"><label for="cap-notas">Qué viste (opcional)</label><textarea id="cap-notas" rows="2" placeholder="Por ejemplo: rompió máximos con volumen; presenta resultados el jueves"></textarea></div>
       <div class="row"><button type="button" class="primary" id="btnAnalizar" disabled>Analizar</button><button type="button" class="ghost" id="btnParar" hidden>Parar</button></div>
       <p class="hint" id="cap-estado" role="status"></p>
       <div id="cap-resultado"></div>
+      <div id="ge-resultado" hidden></div>
     </section>
 
     <!-- OPERAR -->
@@ -513,7 +553,8 @@ h3{font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:1rem
   var TABS = ['hoy', 'analizar', 'operar', 'abiertas', 'diario'];
   var S = { cfg: clone(DEF), trades: [], senales: [], resumenes: [], revisiones: [], loaded: false, local: false, owner: null, downloads: null, est: null, mkt: null, capListo: false,
     ui: { panel: null, per: 'semana', confirmYa: false, cfgDirty: false, confirmReset: false, err: {}, motivo: {}, plan: {}, senalId: null, seguridad: null, opciones: [], opcionSel: -1,
-      tab: 'hoy', tipoAuto: true, verPor: 'nivel', analisis: null, analisisId: null, analizando: false, chkTarget: null, chkBusy: {}, revisando: false, thumbUrls: [] } };
+      tab: 'hoy', tipoAuto: true, verPor: 'nivel', analisis: null, analisisId: null, analizando: false, chkTarget: null, chkBusy: {}, revisando: false, thumbUrls: [],
+      modoCap: 'entrada', analizandoQue: 'entrada', gePos: null, gestion: null } };
   var TRADES = null, CFGDOC = null, SENALES = null, RESUMENES = null, REVISIONES = null, SAMPLE = null, LIMITES = null, ARCHIVOS = [], CTL = null;
 
   /* ---------- Utilidades ---------- */
@@ -1381,10 +1422,19 @@ h3{font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:1rem
       var u = ''; try { u = URL.createObjectURL(f); S.ui.thumbUrls.push(u); } catch (e) { }
       return '<div class="thumb">' + (u ? '<img src="' + u + '" alt="Captura ' + (i + 1) + '">' : '') + '<button type="button" data-quitar="' + i + '" aria-label="Quitar captura ' + (i + 1) + '">Quitar</button><span>' + (i + 1) + '</span></div>';
     }).join('');
-    var b = $('btnAnalizar');
-    b.disabled = !ARCHIVOS.length || S.ui.analizando || !puedeImagenes();
-    b.textContent = S.ui.analizando ? 'Analizando…' : 'Analizar';
+    renderCapBoton();
+  }
+  function renderCapBoton() {
+    var b = $('btnAnalizar'), dentro = S.ui.modoCap === 'dentro';
+    b.disabled = !ARCHIVOS.length || S.ui.analizando || !puedeImagenes() || (dentro && !gestionLista());
+    b.textContent = S.ui.analizando ? (S.ui.analizandoQue === 'dentro' ? 'Revisando…' : 'Analizando…') : dentro ? 'Revisar posición' : 'Analizar';
     $('btnParar').hidden = !S.ui.analizando;
+    renderGuia();
+  }
+  /* "Busco entrada" con ticker y sin capturas: qué capturas tomar. */
+  function renderGuia() {
+    var g = S.ui.modoCap === 'entrada' && !ARCHIVOS.length ? guiaCapturas($('cap-activo').value) : null;
+    $('cap-guia').innerHTML = g ? '<div class="card"><h3>' + esc(g.titulo) + '</h3><ol class="guia">' + g.items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol><p class="hint">' + esc(g.nota) + '</p></div>' : '';
   }
   function renderCapDisponible() {
     var no = $('cap-no'), zona = $('cap-zona');
@@ -1442,7 +1492,7 @@ h3{font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:1rem
     if (!puedeImagenes() || S.ui.analizando || !ARCHIVOS.length) return;
     var est = $('cap-estado');
     var d = { n: ARCHIVOS.length, activo: $('cap-activo').value.trim().toUpperCase(), dir: $('cap-dir').value, notas: $('cap-notas').value.trim().slice(0, 600) };
-    S.ui.analizando = true; CTL = new AbortController(); renderCapUI();
+    S.ui.analizando = true; S.ui.analizandoQue = 'entrada'; CTL = new AbortController(); renderCapUI();
     est.className = 'hint'; est.textContent = 'Analizando ' + d.n + (d.n === 1 ? ' captura' : ' capturas') + '… puede tardar uno o dos minutos.';
     var opts = { images: ARCHIVOS.slice(), modelTier: 'complex', signal: CTL.signal };
     if (forzar) opts.cache = false;
@@ -1470,6 +1520,305 @@ h3{font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:1rem
       (a.nivelIdx == null ? '. El setup no cumple tus criterios: puse el nivel más bajo y lo mejor es no operar.' : ', nivel ' + moneyN(S.cfg.niveles[a.nivelIdx]) + '.') +
       ' Revisá los niveles y escribí el precio de Quantfury.';
     irA('operar'); onCalcChange();
+  }
+
+  /* ---------- Ya estoy dentro: reglas (funciones puras) ---------- */
+  /* La IA propone; la validación del stop y del riesgo la hace este código, nunca la IA. */
+  var ACCIONES = ['mantener', 'mover_stop', 'parcial', 'salir'];
+  var ESTADOS_IDEA = ['vigente', 'debilitada', 'invalidada'];
+  var ESTADO_TXT = { vigente: 'Sigue vigente', debilitada: 'Debilitada', invalidada: 'Invalidada', sin_dato: 'Sin evaluar' };
+  var GUIA_CAPTURAS = [['Diario', '6 a 9 meses'], ['4H', '4 a 6 semanas'], ['15 minutos', 'las últimas 2 o 3 sesiones']];
+  function guiaCapturas(activo) {
+    var a = String(activo || '').trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, '').slice(0, 12);
+    if (!a) return null;
+    return { activo: a, titulo: 'Para analizar ' + a + ', tomá estas 3 capturas', items: GUIA_CAPTURAS.map(function (x) { return x[0] + ': ' + x[1]; }),
+      nota: 'Una por temporalidad, con el eje de precios a la vista. Después subilas acá arriba.' };
+  }
+  function sinTildes(s) { return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim(); }
+  /* Solo las cuatro acciones permitidas. Cualquier otra (promediar, ampliar el stop…) queda en null. */
+  function accionDe(x) {
+    var s = sinTildes(x).replace(/[\s\-]+/g, '_');
+    var otras = { mover_el_stop: 'mover_stop', poner_stop: 'mover_stop', poner_el_stop: 'mover_stop', tomar_parcial: 'parcial', tomar_un_parcial: 'parcial', salir_ahora: 'salir', cerrar: 'salir', cerrar_todo: 'salir' };
+    if (ACCIONES.indexOf(s) >= 0) return s;
+    return Object.prototype.hasOwnProperty.call(otras, s) ? otras[s] : null;
+  }
+  function normalizarGestion(res) {
+    res = res && typeof res === 'object' && !Array.isArray(res) ? res : {};
+    var e = sinTildes(res.estado), pct = Number(res.porcentaje);
+    var g = {
+      activo: String(res.activo || '').toUpperCase().replace(/[^A-Z0-9.\-]/g, '').slice(0, 12), legible: res.legible !== false,
+      problemas: arr(res.problemas), advertencias: arr(res.advertencias),
+      capturas: Array.isArray(res.capturas) ? res.capturas.slice(0, 8).map(function (c, i) { c = c || {}; return { n: Number(c.n) || i + 1, temporalidad: txt(c.temporalidad || 'desconocida', 30), tendencia: txt(c.tendencia, 20), lectura: txt(c.lectura, 200) }; }) : [],
+      estado: ESTADOS_IDEA.indexOf(e) >= 0 ? e : 'sin_dato', motivoEstado: txt(res.motivo_estado),
+      accion: accionDe(res.accion), nivel: pos(res.nivel), porcentaje: isNum(pct) && pct > 0 && pct <= 100 ? pct : null,
+      motivo: txt(res.motivo, 400), invalidacion: txt(res.invalidacion)
+    };
+    if (!g.legible) g.advertencias.unshift('Las capturas no se leyeron bien: no confíes en los niveles que propone.');
+    return g;
+  }
+  function etiquetaAccion(acc, nivel, pct, sinStop) {
+    if (acc === 'mantener') return 'Mantener: no cambies nada';
+    if (acc === 'mover_stop') return (sinStop ? 'Poner el stop en ' : 'Mover el stop a ') + price(nivel);
+    if (acc === 'parcial') return 'Tomar un parcial' + (pct > 0 ? ' del ' + nf0.format(pct) + '%' : '') + (nivel > 0 ? ' en ' + price(nivel) : '');
+    if (acc === 'salir') return 'Salir ahora';
+    return 'Sin acción válida';
+  }
+  /* Riesgo de una posición con un stop y unas unidades dadas. riesgo: lo que perdés contra tu entrada si toca el stop.
+     siToca: resultado si toca el stop (positivo = ganancia asegurada). devolver: lo que perdés desde el precio de ahora. */
+  function metricasGestion(p, stop, unidades, precio) {
+    var s = signo(p), m = { stop: stop > 0 ? stop : null, unidades: unidades > 0 ? unidades : 0, sinLimite: false };
+    if (!(m.unidades > 0)) { m.riesgo = 0; m.siToca = 0; m.devolver = 0; }
+    else if (!m.stop) { m.sinLimite = true; m.riesgo = null; m.siToca = null; m.devolver = null; }
+    else { var contra = s * (p.entrada - stop) * m.unidades; m.riesgo = max0(contra); m.siToca = -contra; m.devolver = max0(s * (precio - stop) * m.unidades); }
+    m.riesgoR = isNum(m.riesgo) && p.riesgoInicial > 0 ? m.riesgo / p.riesgoInicial : null;
+    m.siTocaR = isNum(m.siToca) && p.riesgoInicial > 0 ? m.siToca / p.riesgoInicial : null;
+    return m;
+  }
+  /* p: { dir, entrada, unidades (abiertas), stop (vigente; vacío = sin stop), riesgoInicial, amb }. prop: propuesta normalizada o null (solo chequeo). */
+  function validarGestion(p, prop, precio, cfg) {
+    var r = { ok: false, errores: [], avisos: [], accion: null, nivel: null, porcentaje: null, unidadesCerrar: null, realiza: null, motivo: '', estado: prop ? prop.estado : null,
+      forzada: false, descartada: null, sinStop: false, stopSuperado: false };
+    p = p || {};
+    (p.amb || []).forEach(function (a) { r.errores.push('No sé si «' + a.raw + '» (' + a.campo + ') lleva decimales o miles. Escribilo con coma decimal (' + a.raw.replace('.', ',') + ') o sin punto (' + a.raw.replace('.', '') + ').'); });
+    if (p.dir !== 'compra' && p.dir !== 'venta') r.errores.push('Elegí la dirección de la posición.');
+    if (!(p.entrada > 0)) r.errores.push('Escribí el precio de entrada.');
+    if (!(p.unidades > 0)) r.errores.push('Escribí cuántas unidades tenés abiertas.');
+    if (!(precio > 0)) r.errores.push('Escribí el precio que ves ahora en Quantfury: sin eso no se puede revisar la posición.');
+    if (r.errores.length) return r;
+    var lejos = function (x) { return x / p.entrada > 2 || x / p.entrada < 0.5; };
+    if (lejos(precio)) r.errores.push('El precio ahora (' + price(precio) + ') está demasiado lejos de la entrada (' + price(p.entrada) + '): revisalo.');
+    if (p.stop > 0 && lejos(p.stop)) r.errores.push('El stop (' + price(p.stop) + ') está demasiado lejos de la entrada (' + price(p.entrada) + '): revisalo.');
+    if (r.errores.length) return r;
+    r.ok = true;
+    var s = signo(p), acc = prop ? prop.accion : null, n = prop ? prop.nivel : null;
+    r.sinStop = !(p.stop > 0);
+    r.stopSuperado = !r.sinStop && s * (precio - p.stop) <= 0;
+    r.ahora = metricasGestion(p, p.stop, p.unidades, precio);
+    r.tras = r.ahora;
+    var descartar = function (razon) { r.descartada = { accion: acc, nivel: n, porcentaje: prop.porcentaje, texto: etiquetaAccion(acc, n, prop.porcentaje, r.sinStop), razon: razon }; };
+    var salir = function () { r.accion = 'salir'; r.nivel = precio; r.tras = metricasGestion(p, p.stop, 0, precio); r.realiza = s * (precio - p.entrada) * p.unidades; };
+    if (r.stopSuperado) {
+      if (acc && acc !== 'salir') descartar('el precio ya pasó tu stop, así que la única acción es salir.');
+      salir(); r.forzada = true;
+      r.motivo = 'El precio (' + price(precio) + ') ya pasó tu stop (' + price(p.stop) + '): el stop ya debió ejecutarse. Fijate en Quantfury si se cerró; si sigue abierta, cerrala ahora.';
+    } else if (prop) {
+      r.motivo = prop.motivo;
+      if (!acc) r.avisos.push({ t: 'La respuesta no trajo una de las cuatro acciones (mantener, mover el stop, tomar un parcial o salir): no hay propuesta para aplicar.', b: true });
+      else if (acc === 'mantener') r.accion = 'mantener';
+      else if (acc === 'salir') salir();
+      else if (acc === 'mover_stop') {
+        if (!(n > 0)) descartar('no dice a qué nivel poner el stop.');
+        else if (lejos(n)) descartar('el nivel ' + price(n) + ' no parece de este activo.');
+        else if (!r.sinStop && s * (n - p.stop) < -1e-9) descartar('el stop propuesto (' + price(n) + ') queda ' + (s > 0 ? 'por debajo' : 'por encima') + ' de tu stop actual (' + price(p.stop) + ') y alejaría la pérdida. El stop solo se mueve a favor.');
+        else if (!r.sinStop && Math.abs(n - p.stop) < 1e-9) { r.accion = 'mantener'; r.avisos.push({ t: 'El stop propuesto es el que ya tenés: queda como mantener.' }); }
+        else if (s * (precio - n) <= 0) descartar('el stop propuesto (' + price(n) + ') queda ' + (s > 0 ? 'por encima' : 'por debajo') + ' del precio de ahora (' + price(precio) + ') y se ejecutaría al instante. Si querés salir, la acción es salir.');
+        else { r.accion = 'mover_stop'; r.nivel = n; r.tras = metricasGestion(p, n, p.unidades, precio); }
+      } else if (acc === 'parcial') {
+        var pct = prop.porcentaje;
+        if (!(n > 0) || !(pct > 0)) descartar('no dice ' + (!(n > 0) && !(pct > 0) ? 'a qué nivel ni cuánto cerrar' : !(n > 0) ? 'a qué nivel cerrar' : 'qué porcentaje cerrar') + '.');
+        else if (lejos(n)) descartar('el nivel ' + price(n) + ' no parece de este activo.');
+        else if (!r.sinStop && s * (n - p.stop) <= 0) descartar('el nivel del parcial (' + price(n) + ') está detrás de tu stop (' + price(p.stop) + '): el stop se ejecutaría antes.');
+        else {
+          var u = Math.min(p.unidades, floorStep(p.unidades * pct / 100, cfg.paso));
+          if (!(u > 0)) descartar('con ' + units(p.unidades) + ' unidades, el ' + nf0.format(pct) + '% no llega a lo mínimo que se puede cerrar.');
+          else {
+            var resto = +(p.unidades - u).toFixed(decimalsOf(cfg.paso) + 2);
+            r.accion = 'parcial'; r.nivel = n; r.porcentaje = pct; r.unidadesCerrar = u;
+            r.tras = metricasGestion(p, p.stop, resto, precio); r.realiza = s * (n - p.entrada) * u;
+            if (resto <= 1e-9) r.avisos.push({ t: 'Ese porcentaje cierra toda la posición.' });
+            if (s * (n - precio) < 0) r.avisos.push({ t: 'El nivel del parcial (' + price(n) + ') ya quedó ' + (s > 0 ? 'por debajo' : 'por encima') + ' del precio de ahora: en Quantfury se cerraría a precio de mercado.' });
+          }
+        }
+      }
+      if (prop.estado === 'invalidada' && r.accion === 'mantener') r.avisos.push({ t: 'Dice que la idea quedó invalidada y aun así propone mantener: revisalo antes de decidir.' });
+      if (acc && !prop.motivo) r.avisos.push({ t: 'La propuesta no trae motivo: no la apliques sin entender por qué.' });
+    }
+    if (r.sinStop) r.avisos.unshift({ t: 'Estás expuesto sin stop: si el precio va en contra, la pérdida no tiene límite. Poné un stop en Quantfury ahora' + (r.accion === 'mover_stop' ? ' (la propuesta: ' + price(r.nivel) + ')' : '') + '.', b: true });
+    if (r.descartada) r.avisos.unshift({ t: 'Propuesta descartada (' + r.descartada.texto.charAt(0).toLowerCase() + r.descartada.texto.slice(1) + '): ' + r.descartada.razon, b: true });
+    return r;
+  }
+  function promptGestion(d, mkt) {
+    var m = mkt || {}, venta = d.dir === 'venta';
+    var n = function (x) { return isNum(x) && x > 0 ? String(round4(x)) : null; };
+    return [
+      'REVISIÓN DE POSICIÓN ABIERTA.',
+      'Sos el analista técnico de Johannes, que opera acciones de EE. UU. con CFD en Quantfury (apalancamiento x20) desde Bolivia.',
+      'Johannes YA ESTÁ DENTRO de esta operación: no busques una entrada nueva, decí qué hacer con la posición abierta.',
+      'Posición: activo ' + (d.activo || 'no indicado (leelo de la captura si se ve)') + '; ' + (venta ? 'venta corta' : 'compra') + '; entrada ' + n(d.entrada) + '; ' + n(d.unidades) + ' unidades abiertas; stop vigente ' + (n(d.stop) || 'NINGUNO: está SIN STOP') +
+        '; TP1 ' + (n(d.tp1) || 'no indicado') + (d.tp1Hecho ? ' (ya cerró la parte del TP1: el stop vigente es el SL2)' : '') + '; TP2 ' + (n(d.tp2) || 'no indicado') + '.',
+      'Precio ahora en Quantfury: ' + n(d.precio) + '. Ubicá el stop y los niveles respecto de este precio.',
+      'Notas de Johannes: ' + (d.notas || 'ninguna') + '.',
+      'Ahora son las ' + (m.bo || '?') + ' en Bolivia y las ' + (m.ny || '?') + ' en Nueva York. ' + (m.texto || '') + '.',
+      'Te mando ' + d.n + (d.n === 1 ? ' captura actual' : ' capturas actuales') + ' del mismo activo.',
+      '',
+      'Reglas que tu propuesta tiene que cumplir:',
+      '- El stop solo se mueve a favor: ' + (venta ? 'en esta venta corta, más abajo que el stop vigente' : 'en esta compra, más arriba que el stop vigente') + '. Nunca lo alejes.',
+      '- Un stop nuevo tiene que quedar ' + (venta ? 'por encima' : 'por debajo') + ' del precio de ahora; si no, se ejecutaría al instante.',
+      '- Nunca sugieras promediar, agregar unidades ni ampliar el stop.',
+      '- Si no tiene stop, proponé "mover_stop" con el nivel donde ponerlo, o "salir".',
+      '- No des probabilidades ni porcentajes de éxito.',
+      '',
+      'Pasos:',
+      '1. Decí qué temporalidad es cada captura (diario, 4H, 1H, 15 min, 5 min u otra). Si no se puede saber, "desconocida".',
+      '2. Leé precios SOLO del eje vertical y de las etiquetas visibles. No inventes precios. Si no podés leerlos con seguridad, poné "legible": false y explicá por qué en "problemas".',
+      '3. Evaluá la idea: "vigente" (la estructura que la sostenía sigue en pie), "debilitada" (perdió fuerza pero no se rompió) o "invalidada" (se rompió lo que la sostenía).',
+      '4. Proponé UNA sola acción: "mantener"; "mover_stop" con "nivel"; "parcial" con "nivel" y "porcentaje" (entero de 1 a 100, sobre las unidades abiertas); o "salir" (cerrar ahora). Siempre con su motivo técnico en español simple.',
+      '',
+      'Respondé SOLO con un objeto JSON (números con punto decimal), con esta forma:',
+      '{"activo":"TICKER o null","legible":true,"problemas":["..."],"capturas":[{"n":1,"temporalidad":"4H","tendencia":"alcista|bajista|lateral","lectura":"una línea"}],"estado":"vigente|debilitada|invalidada","motivo_estado":"...","accion":"mantener|mover_stop|parcial|salir","nivel":null,"porcentaje":null,"motivo":"...","invalidacion":"qué la invalidaría desde acá","advertencias":["..."]}',
+      'En "mantener" y "salir", "nivel" y "porcentaje" van en null; en "mover_stop", "porcentaje" va en null.'
+    ].join('\n');
+  }
+
+  /* ---------- Ya estoy dentro: pantalla ---------- */
+  var GE_CAMPOS = [['ge-entrada', 'entrada', 'entrada'], ['ge-unidades', 'unidades', 'unidades'], ['ge-stop', 'stop', 'stop'], ['ge-riesgo', 'riesgoInicial', 'riesgo inicial'], ['ge-tp1', 'tp1', 'TP1'], ['ge-tp2', 'tp2', 'TP2']];
+  var GE_OPC = '', GE_HTML = { chk: '', res: '' };
+  var CAP_INTRO_ENTRADA = $('cap-intro').textContent;
+  var CAP_INTRO_DENTRO = 'Elegí la posición (o cargala a mano), escribí el precio de Quantfury y subí capturas actuales del activo. Claude dice si la idea sigue vigente, se debilitó o quedó invalidada y propone una acción; el panel la valida con tus reglas antes de mostrarla.';
+  function abiertasOrden() { return S.est ? S.est.abiertas.slice().sort(function (a, b) { return a.ts - b.ts; }) : []; }
+  /* Posición elegida: id de Abiertas, 'manual' o '' (todavía no eligió). */
+  function gePosSel() {
+    var ab = abiertasOrden(), v = S.ui.gePos;
+    if (v && v !== 'manual' && !ab.some(function (t) { return t.id === v; })) v = null;
+    return v != null ? v : ab.length ? '' : 'manual';
+  }
+  function geTrade(sel) { return sel && sel !== 'manual' ? S.trades.filter(function (t) { return t.id === sel && t.estado === 'abierta'; })[0] || null : null; }
+  function leerGestion() {
+    var sel = gePosSel(), t = geTrade(sel), raw = $('ge-ahora').value, a = analizarNum(raw), amb = [], p = null;
+    if (a.amb) amb.push({ campo: 'precio ahora', raw: raw.trim() });
+    if (t) p = { id: t.id, activo: t.activo, dir: t.dir, entrada: t.entrada, unidades: t.unidadesAbiertas, stop: t.stopActual, tp1: t.tp1, tp2: t.tp2, riesgoInicial: t.riesgoInicial, tp1Hecho: !!t.tp1Hecho, amb: amb };
+    else if (sel === 'manual') {
+      p = { id: null, activo: $('ge-activo').value.trim().toUpperCase(), dir: $('ge-dir').value, tp1Hecho: false, amb: amb };
+      GE_CAMPOS.forEach(function (c) { var r0 = $(c[0]).value, x = analizarNum(r0); p[c[1]] = x.v; if (x.amb) amb.push({ campo: c[2], raw: r0.trim() }); });
+    }
+    return { sel: sel, pos: p, precio: a.v };
+  }
+  function propGestion(g) { return S.ui.gestion && S.ui.gestion.sel === g.sel ? S.ui.gestion.prop : null; }
+  function gestionLista() { var g = leerGestion(); if (!g.pos) return false; var v = validarGestion(g.pos, null, g.precio, S.cfg); return v.ok && !v.stopSuperado; }
+  function limpiarGe() { ['ge-activo', 'ge-ahora'].concat(GE_CAMPOS.map(function (c) { return c[0]; })).forEach(function (id) { $(id).value = ''; }); $('ge-dir').value = 'compra'; }
+  function renderGePos() {
+    var sel = $('ge-pos'), ab = abiertasOrden();
+    if (S.ui.gePos && S.ui.gePos !== 'manual' && !geTrade(S.ui.gePos)) { S.ui.gePos = null; S.ui.gestion = null; $('ge-ahora').value = ''; }
+    var actual = gePosSel(), t = geTrade(actual);
+    var html = (ab.length ? '<option value="">Elegí una posición…</option>' : '') + ab.map(function (x) {
+      return '<option value="' + esc(x.id) + '">' + esc(x.activo + ' · ' + (x.dir === 'venta' ? 'venta corta' : 'compra') + ' · ' + units(x.unidadesAbiertas) + ' u a ' + price(x.entrada) + ' · stop ' + price(x.stopActual)) + '</option>';
+    }).join('') + '<option value="manual">Otra, no registrada: cargala a mano</option>';
+    if (html !== GE_OPC) { sel.innerHTML = html; GE_OPC = html; }
+    sel.value = actual;
+    $('ge-pos-hint').textContent = !ab.length ? 'No tenés posiciones en Abiertas: cargá los datos a mano.' : actual === '' ? 'Elegí la posición que querés revisar, u «Otra» si no la registraste.' :
+      t ? 'Datos tomados de Abiertas. Si cambiaste algo en Quantfury, actualizalo primero allá.' : 'No está en Abiertas: el panel calcula con lo que escribas y no guarda nada.';
+    $('ge-campos').hidden = actual === '';
+    ['ge-activo', 'ge-dir'].concat(GE_CAMPOS.map(function (c) { return c[0]; })).forEach(function (id) { $(id).disabled = !!t; });
+    if (t) {
+      var vals = { 'ge-activo': t.activo, 'ge-dir': t.dir === 'venta' ? 'venta' : 'compra', 'ge-entrada': campoPrecio(t.entrada), 'ge-unidades': campoUnidades(t.unidadesAbiertas), 'ge-stop': campoPrecio(t.stopActual),
+        'ge-riesgo': campoPrecio(round2(t.riesgoInicial)), 'ge-tp1': campoPrecio(t.tp1), 'ge-tp2': campoPrecio(t.tp2) };
+      Object.keys(vals).forEach(function (id) { if ($(id).value !== vals[id]) $(id).value = vals[id]; });
+    }
+  }
+  function lineaRiesgo(m) {
+    if (m.sinLimite) return 'Riesgo ahora: <b class="down">sin límite</b>, porque no hay stop.';
+    var enR = function (x) { return isNum(x) ? ' (' + nfR.format(round2(x)) + ' R)' : ''; };
+    var base = m.riesgo > 0.004 ? 'Riesgo abierto: <b>' + money(m.riesgo) + '</b>' + enR(m.riesgoR) + ' si toca el stop.' :
+      m.siToca > 0.004 ? 'Riesgo abierto: <b>' + money(0) + '</b>; el stop asegura <b class="up">' + moneyS(m.siToca) + '</b>' + (isNum(m.siTocaR) ? ' (' + rfmt(m.siTocaR) + ')' : '') + '.' : 'Riesgo abierto: <b>' + money(0) + '</b>; el stop está en tu entrada.';
+    return base + ' Desde el precio de ahora, si toca el stop devolvés <b>' + money(m.devolver) + '</b>.' + (m.riesgo > 0.004 && !isNum(m.riesgoR) ? ' Sin riesgo inicial no se puede medir en R.' : '');
+  }
+  function celdaRiesgo(m) {
+    if (m.sinLimite) return '<b class="down">Sin límite</b>';
+    return money(m.riesgo) + '<br><small>' + (isNum(m.riesgoR) ? nfR.format(round2(m.riesgoR)) + ' R' : 'R sin dato') + '</small>';
+  }
+  function tablaGestion(v) {
+    var a = v.ahora, d = v.tras;
+    var fila = function (lbl, x, y) { return '<tr><td>' + lbl + '</td><td class="n">' + x + '</td><td class="n">' + y + '</td></tr>'; };
+    var stop = function (m) { return !(m.unidades > 0) ? '—' : m.stop ? price(m.stop) : '<b class="down">Sin stop</b>'; };
+    var dev = function (m) { return m.sinLimite ? '<b class="down">Sin límite</b>' : money(m.devolver); };
+    return '<div class="tbl-wrap"><table class="ge-t"><thead><tr><th></th><th class="n">Ahora</th><th class="n">Con la acción</th></tr></thead><tbody>' +
+      fila('Stop', stop(a), stop(d)) + fila('Unidades abiertas', units(a.unidades), units(d.unidades)) + fila('Riesgo abierto', celdaRiesgo(a), celdaRiesgo(d)) +
+      fila('Si toca el stop, desde el precio de ahora devolvés', dev(a), dev(d)) +
+      (isNum(v.realiza) ? fila('Realizás (aprox.)', '—', '<span class="' + cls(v.realiza) + '">' + moneyS(v.realiza) + '</span>') : '') + '</tbody></table></div>';
+  }
+  function tarjetaGestion(g, v, prop) {
+    var p = g.pos, gs = S.ui.gestion;
+    var head = '<div class="row between"><h3>' + esc(p.activo || (prop && prop.activo) || 'Posición') + ' · ' + (p.dir === 'venta' ? 'Venta corta' : 'Compra') + ' · ya dentro</h3>' + (prop && gs ? '<span class="meta-line">' + hhmm(gs.ts) + '</span>' : '') + '</div>';
+    var idea = prop && !v.forzada ? '<p class="idea" data-e="' + esc(v.estado) + '">Idea: <b>' + esc(ESTADO_TXT[v.estado] || ESTADO_TXT.sin_dato) + '</b>' + (prop.motivoEstado ? '. ' + esc(prop.motivoEstado) : '') + '</p>' : '';
+    var titulo = v.forzada ? 'Salir: el stop ya debió ejecutarse' : etiquetaAccion(v.accion, v.nivel, v.porcentaje, v.sinStop) + (v.accion === 'parcial' ? ' (' + units(v.unidadesCerrar) + ' u)' : '');
+    var motivo = v.accion ? (v.motivo ? '<p>' + esc(v.motivo) + '</p>' : '') : (prop && prop.motivo ? '<p class="meta-line">Lo que dijo el análisis: ' + esc(prop.motivo) + '</p>' : '');
+    var accion = '<div class="accion" data-a="' + (v.accion || 'ninguna') + '"><span class="lbl">' + (v.forzada ? 'Única acción posible' : 'Propuesta') + '</span><b>' + esc(titulo) + '</b>' + motivo + '</div>';
+    var items = v.avisos.map(function (x) { return '<li class="' + (x.b ? 'b' : 'a') + '">' + esc(x.t) + '</li>'; });
+    if (prop) items = items.concat(prop.problemas.concat(prop.advertencias).map(function (x) { return '<li class="a">' + esc(x) + '</li>'; }));
+    if (S.mkt && S.mkt.estado !== 'abierto' && (v.accion === 'parcial' || (v.accion === 'salir' && !v.forzada))) items.push('<li class="a">Wall Street está cerrado ahora: no operes acciones en after-hours.</li>');
+    var caps = prop && prop.capturas.length ? '<p class="meta-line">Leí: ' + prop.capturas.map(function (c) { return esc(c.temporalidad) + (c.tendencia ? ' (' + esc(c.tendencia) + ')' : ''); }).join(' · ') + '</p>' : '';
+    var inval = prop && prop.invalidacion && !v.forzada ? '<p class="line-note"><b>Se invalida si:</b> ' + esc(prop.invalidacion) + '</p>' : '';
+    var precioNota = prop && gs && isNum(gs.precio) && Math.abs(gs.precio - g.precio) > 1e-9 ? '<p class="hint">Las capturas se revisaron con el precio ' + price(gs.precio) + '; la validación usa el de ahora (' + price(g.precio) + ').</p>' : '';
+    var aplicable = v.accion === 'mover_stop' || v.accion === 'parcial' || v.accion === 'salir';
+    var APL = { mover_stop: 'Ir a Abiertas para mover el stop', parcial: 'Ir a Abiertas para registrar el parcial', salir: 'Ir a Abiertas para cerrarla' };
+    var botones = (aplicable && p.id ? '<button type="button" class="primary" data-ge-aplicar="' + v.accion + '">' + APL[v.accion] + '</button>' : '') +
+      (prop && !v.forzada && puedeImagenes() ? '<button type="button" class="ghost" id="btnReRevisar">Revisar de nuevo</button>' : '');
+    var notaApl = !aplicable ? '' : p.id ? '<p class="hint">Primero hacelo en Quantfury. En Abiertas se abre el formulario de siempre con los datos cargados: nada se guarda hasta que lo confirmes, y confirmá solo lo que ya se ejecutó.</p>' :
+      '<p class="hint">Esta posición no está en Abiertas: hacelo en Quantfury. El panel no guarda nada.</p>';
+    return '<div class="card">' + head + idea + accion + (items.length ? '<ul class="issues">' + items.join('') + '</ul>' : '') + tablaGestion(v) + caps + inval + precioNota +
+      (botones ? '<div class="row">' + botones + '</div>' : '') + notaApl +
+      '<p class="hint">La validación del stop y del riesgo la hace el panel con tus reglas, no la IA. ' + (prop ? 'Los niveles salen de leer las capturas y pueden tener errores de unos centavos. ' : '') + 'Esta revisión no se guarda.</p></div>';
+  }
+  function renderGestion() {
+    if (S.ui.modoCap !== 'dentro') return;
+    renderGePos();
+    var g = leerGestion(), chk = '', html = '';
+    if (g.pos) {
+      var prop = propGestion(g), v = validarGestion(g.pos, prop, g.precio, S.cfg);
+      if (!v.ok) chk = '<ul class="issues">' + v.errores.map(function (x) { return '<li class="b">' + esc(x) + '</li>'; }).join('') + '</ul>';
+      else if (!prop && !v.stopSuperado) chk = (v.sinStop ? '<ul class="issues"><li class="b">' + esc(v.avisos[0].t) + '</li></ul>' : '') + '<p class="line-note">' + lineaRiesgo(v.ahora) + '</p>';
+      if (v.ok && (prop || v.stopSuperado)) html = tarjetaGestion(g, v, prop);
+    }
+    /* Se re-dibuja solo si cambió, para no reemplazar un botón mientras lo tocás. */
+    if (chk !== GE_HTML.chk) { $('ge-check').innerHTML = chk; GE_HTML.chk = chk; }
+    if (html !== GE_HTML.res) { $('ge-resultado').innerHTML = html; GE_HTML.res = html; }
+    renderCapBoton();
+  }
+  function renderCapModo() {
+    var dentro = S.ui.modoCap === 'dentro';
+    $(dentro ? 'cap-modo-d' : 'cap-modo-e').checked = true;
+    $('ge-box').hidden = !dentro; $('ge-resultado').hidden = !dentro;
+    $('cap-entrada-campos').hidden = dentro; $('cap-resultado').hidden = dentro;
+    $('cap-intro').textContent = dentro ? CAP_INTRO_DENTRO : CAP_INTRO_ENTRADA;
+    if (dentro) renderGestion(); else renderCapBoton();
+  }
+  /* PLATAFORMA: le pide a Claude (claude.use('sample').json) que lea las capturas y responda en JSON. */
+  function pedirJsonConCapturas(prompt, imagenes, signal, forzar) {
+    var opts = { images: imagenes, modelTier: 'complex', signal: signal };
+    if (forzar) opts.cache = false;
+    return SAMPLE.json(prompt, opts);
+  }
+  function revisarPosicion(forzar) {
+    if (!puedeImagenes() || S.ui.analizando || !ARCHIVOS.length) return;
+    var g = leerGestion(); if (!g.pos) return;
+    var chk = validarGestion(g.pos, null, g.precio, S.cfg);
+    if (!chk.ok || chk.stopSuperado) { renderGestion(); return; }
+    var p = g.pos, est = $('cap-estado'), sel = g.sel;
+    var d = { n: ARCHIVOS.length, activo: p.activo, dir: p.dir, entrada: p.entrada, unidades: p.unidades, stop: chk.sinStop ? null : p.stop, tp1: p.tp1, tp2: p.tp2, tp1Hecho: p.tp1Hecho, precio: g.precio, notas: $('cap-notas').value.trim().slice(0, 600) };
+    S.ui.analizando = true; S.ui.analizandoQue = 'dentro'; CTL = new AbortController(); renderCapUI();
+    est.className = 'hint'; est.textContent = 'Revisando ' + (p.activo || 'la posición') + ' con ' + d.n + (d.n === 1 ? ' captura' : ' capturas') + '… puede tardar uno o dos minutos.';
+    pedirJsonConCapturas(promptGestion(d, S.mkt), ARCHIVOS.slice(), CTL.signal, forzar).then(function (res) {
+      if (gePosSel() !== sel) { est.className = 'hint err'; est.textContent = 'Cambiaste de posición mientras revisaba: volvé a revisar.'; return; }
+      S.ui.gestion = { sel: sel, ts: Date.now(), precio: d.precio, prop: normalizarGestion(res) };
+      est.className = 'hint ok'; est.textContent = 'Listo. Es una propuesta validada con tus reglas: el panel no registra nada solo.';
+      renderGestion();
+    }, function (e) { est.className = 'hint err'; est.textContent = msgSample(e); })
+      .then(function () { S.ui.analizando = false; CTL = null; renderCapUI(); });
+  }
+  /* Aplicar es manual: abre el formulario de siempre en Abiertas con los datos cargados. No guarda nada. */
+  function aplicarGestion(accion) {
+    var g = leerGestion(), t = g.pos && geTrade(g.sel);
+    if (!t) return;
+    var v = validarGestion(g.pos, propGestion(g), g.precio, S.cfg);
+    if (v.accion !== accion) return;
+    var id = t.id, campos = {}, kind;
+    if (accion === 'mover_stop') { kind = 'stop'; campos['ns-' + id] = campoPrecio(v.nivel); }
+    else if (accion === 'parcial') { kind = 'tp1'; campos['tp1p-' + id] = campoPrecio(v.nivel); campos['tp1u-' + id] = campoUnidades(v.unidadesCerrar); campos['tp1m-' + id] = !t.tp1Hecho && signo(t) * (v.nivel - t.tp1) >= -1e-9; }
+    else { kind = 'cerrar'; S.ui.motivo[id] = v.forzada ? 'stop' : 'manual'; }
+    S.ui.panel = { id: id, kind: kind }; S.ui.err = {};
+    irA('abiertas'); renderAbiertas();
+    Object.keys(campos).forEach(function (k) { var el = $(k); if (!el) return; if (el.type === 'checkbox') el.checked = !!campos[k]; else el.value = campos[k]; });
+    var first = document.querySelector('.pos[data-id="' + id + '"] .panel input[type="text"]'); if (first) first.focus();
   }
 
   /* ---------- Comprobador de señales ---------- */
@@ -1567,7 +1916,7 @@ h3{font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:1rem
   function renderAll() {
     renderClock();
     S.est = estadoDe(S.trades, S.cfg, Date.now());
-    renderEstado(); renderCalc(); renderAbiertas(); renderDiario(); renderAjustes(); renderResumen(); renderComprobar(); renderRevision();
+    renderEstado(); renderCalc(); renderAbiertas(); renderDiario(); renderAjustes(); renderResumen(); renderComprobar(); renderRevision(); renderGestion();
   }
 
   /* ---------- Pestañas ---------- */
@@ -1868,11 +2217,31 @@ h3{font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:1rem
     if (fs.length) { e.preventDefault(); agregarArchivos(fs); }
   });
   $('cap-thumbs').addEventListener('click', function (e) { var b = e.target.closest('[data-quitar]'); if (!b) return; ARCHIVOS.splice(+b.getAttribute('data-quitar'), 1); renderCapUI(); });
-  $('btnAnalizar').addEventListener('click', function () { analizar(false); });
+  $('btnAnalizar').addEventListener('click', function () { if (S.ui.modoCap === 'dentro') revisarPosicion(false); else analizar(false); });
   $('btnParar').addEventListener('click', function () { if (CTL) CTL.abort(); });
   $('cap-resultado').addEventListener('click', function (e) {
     if (e.target.closest('#btnCargarAnalisis')) cargarAnalisis();
     else if (e.target.closest('#btnReanalizar')) analizar(true);
+  });
+  document.querySelectorAll('input[name="cap-modo"]').forEach(function (el) { el.addEventListener('change', function () { S.ui.modoCap = this.value; $('cap-estado').textContent = ''; renderCapModo(); }); });
+  $('cap-activo').addEventListener('input', renderGuia);
+  $('ge-box').addEventListener('input', function (e) {
+    if (e.target.id === 'ge-pos') return;
+    if (gePosSel() === 'manual') S.ui.gePos = 'manual';
+    renderGestion();
+  });
+  /* Solo el selector de posición: los demás campos ya se atienden en 'input' (re-dibujar en 'change' se comería el toque en un botón). */
+  $('ge-box').addEventListener('change', function (e) {
+    if (e.target.id !== 'ge-pos') return;
+    var antes = gePosSel(), v = e.target.value;
+    S.ui.gePos = v; S.ui.gestion = null; $('cap-estado').textContent = '';
+    if (v !== antes) { $('ge-ahora').value = ''; if (v === 'manual') limpiarGe(); }
+    renderGestion();
+  });
+  $('ge-resultado').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-ge-aplicar]');
+    if (b) aplicarGestion(b.getAttribute('data-ge-aplicar'));
+    else if (e.target.closest('#btnReRevisar')) revisarPosicion(true);
   });
   $('diarioStats').addEventListener('change', function (e) { if (e.target.id === 'verPor') { S.ui.verPor = e.target.value; renderDiario(); } });
   $('comprobarLista').addEventListener('click', function (e) {
@@ -1940,10 +2309,12 @@ h3{font-family:var(--f-display);font-stretch:108%;font-weight:700;font-size:1rem
   }
 
   window.PanelTrading = { analizarNum: analizarNum, parseNum: parseNum, campoPrecio: campoPrecio, parseSenales: parseSenales, parseRegistro: parseRegistro, calcular: calcular, estadoDe: estadoDe, veredicto: veredicto, mercado: mercado, cerrarCalc: cerrarCalc, normTrade: normTrade, csv: csv, respaldoJson: respaldoJson,
-    puntajeDe: puntajeDe, bandaDe: bandaDe, normalizarAnalisis: normalizarAnalisis, textoAHtml: textoAHtml, promptAnalisis: promptAnalisis, promptComprobar: promptComprobar, DEF: DEF };
+    puntajeDe: puntajeDe, bandaDe: bandaDe, normalizarAnalisis: normalizarAnalisis, textoAHtml: textoAHtml, promptAnalisis: promptAnalisis, promptComprobar: promptComprobar, DEF: DEF,
+    validarGestion: validarGestion, normalizarGestion: normalizarGestion, promptGestion: promptGestion, guiaCapturas: guiaCapturas };
   var tabIni = (location.hash || '').replace('#', '');
   if (TABS.indexOf(tabIni) < 0) { try { tabIni = localStorage.getItem('panel-trading-tab') || 'hoy'; } catch (e) { tabIni = 'hoy'; } }
   irA(tabIni);
+  renderCapModo();
   renderAll();
   setInterval(renderAll, 30000);
   iniciar();

@@ -1,0 +1,9 @@
+# Dependencias
+node_modules/
+
+# Archivos que generan las pruebas
+test-page.html
+test-niveles-page.html
+test-gestion-page.html
+resultado-*.json
+shot-*.png

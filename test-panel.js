@@ -31,9 +31,14 @@ const MOCK = `(() => {
     motivos: { entrada: 'Retesteo del soporte', sl1: 'Debajo del mínimo del rango', tp1: 'Resistencia previa', tp2: 'Máximo del mes' }, invalidacion: 'Cierre de 15 min debajo de 179',
     criterios: [{ id: 'tendencia', puntos: 22, motivo: 'Diario y 4H alcistas' }, { id: 'stop', puntos: 16, motivo: 'Mínimo claro' }, { id: 'espacio', puntos: 15, motivo: 'Hay recorrido' }, { id: 'entrada', puntos: 11, motivo: 'Cerca del soporte' }, { id: 'confirmacion', puntos: 6, motivo: 'Volumen normal' }, { id: 'lectura', puntos: 8, motivo: 'Se leen bien' }],
     resumen: 'Compra en retroceso a soporte con tendencia a favor.', advertencias: ['Resultados en 10 días'] };
+  /* Revisión de una posición abierta ("Ya estoy dentro"). Las pruebas pueden cambiarla con window.__gestionResp. */
+  const GESTION = { activo: 'NVDA', legible: true, problemas: [], capturas: [{ n: 1, temporalidad: '4H', tendencia: 'alcista', lectura: 'Sigue sobre el soporte' }, { n: 2, temporalidad: '15 min', tendencia: 'lateral', lectura: 'Rango estrecho' }],
+    estado: 'vigente', motivo_estado: 'El soporte de 179 sigue en pie', accion: 'mantener', nivel: null, porcentaje: null, motivo: 'La estructura no cambió', invalidacion: 'Cierre de 4H debajo de 179', advertencias: [] };
+  window.__gestionResp = null;
   const sample = async (input, opts) => { window.__sampleCalls.push({ tipo: 'texto', input: String(input), opts }); const text = ['## Qué funciona', '- Respetaste los stops', '## Qué no funciona', '- Pocas operaciones', '## Reglas rotas', '- Ninguna', '## Un cambio para la próxima semana', '- Registrar todas las señales'].join(String.fromCharCode(10)); if (opts && opts.onText) opts.onText({ text, delta: text }); return { text, truncated: false, modelTierApplied: 'default' }; };
   sample.json = async (input, opts) => { const n = opts && opts.images ? (opts.images.length || 1) : 0; window.__sampleCalls.push({ tipo: 'json', input: String(input), imagenes: n, tier: opts && opts.modelTier }); await new Promise(r => setTimeout(r, 50));
     if (/Comprobá con la captura/.test(input)) return { activada: true, resultado: 'tp1', detalle: 'Tocó TP1 a las 10:40 sin tocar el stop.', confianza_lectura: 'media' };
+    if (/REVISIÓN DE POSICIÓN ABIERTA/.test(input)) return JSON.parse(JSON.stringify(window.__gestionResp || GESTION));
     return JSON.parse(JSON.stringify(ANALISIS)); };
   sample.limits = async () => ({ maxPromptBytes: 262144, images: { maxCount: 5, maxInputBytes: 20971520, mediaTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif'] } });
   window.claude = { use: async (n) => n === 'db' ? db : n === 'user' ? { isOwner: async () => true, canEdit: async () => true, can: async () => true, id: async () => 'u_test' } : n === 'sample' ? sample : null };
@@ -299,4 +304,5 @@ const MOCK = `(() => {
   fails.forEach(f => console.log('FALLA ' + f.name + ' → ' + JSON.stringify(f.got)));
   console.log('Errores de página: ' + (errors.length ? errors.join(' | ') : 'ninguno'));
   await browser.close();
+  process.exit(fails.length || errors.length ? 1 : 0);
 })().catch(e => { console.error('ERROR TEST', e); process.exit(1); });

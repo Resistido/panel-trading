@@ -4,7 +4,7 @@
   "private": true,
   "description": "Panel de Trading de Johannes (artefacto de Claude) y sus pruebas automáticas",
   "scripts": {
-    "test": "node test-panel.js \"$PWD\" panel-trading.html && node test-niveles.js \"$PWD\" panel-trading.html"
+    "test": "node test-panel.js \"$PWD\" panel-trading.html && node test-niveles.js \"$PWD\" panel-trading.html && node test-gestion.js \"$PWD\" panel-trading.html"
   },
   "devDependencies": {
     "playwright": "1.56.0"
