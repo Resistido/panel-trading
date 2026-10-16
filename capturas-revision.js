@@ -1,4 +1,4 @@
-// Capturas para revisión visual (Tarea 2): las cinco pestañas en claro y oscuro a 390 px, y Hoy a 1280 px.
+// Capturas para revisión visual: las cinco pestañas en claro y oscuro a 390 px, Capturas en modo "Ya estoy dentro" con su bloque de acción, y Hoy a 1280 px.
 // Uso: node capturas-revision.js <carpeta> [archivo]. Guarda los PNG en <carpeta>/revision-visual/.
 // Usa el simulador de test-panel.js, un reloj fijo (miércoles 14-oct-2026, 11:05 en Nueva York) y datos inventados.
 const { chromium } = require('playwright');
@@ -45,6 +45,19 @@ fs.mkdirSync(salida, { recursive: true });
     await pg.screenshot({ path: archivo });
     await pg.setViewportSize({ width: ancho, height: 860 });
   };
+  // Imagen mínima: el simulador no la mira, responde siempre la revisión de ejemplo.
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+  const dentro = async (pg) => {
+    await pg.click('#t-analizar');
+    await pg.click('label[for="cap-modo-d"]');
+    await pg.selectOption('#ge-pos', 't-avgo');
+    await pg.setInputFiles('#cap-files', [{ name: '4h.png', mimeType: 'image/png', buffer: png }, { name: '15m.png', mimeType: 'image/png', buffer: png }]);
+    await pg.fill('#ge-ahora', '334,10');
+    await pg.evaluate(() => { window.__gestionResp = { activo: 'AVGO', legible: true, problemas: [], advertencias: ['Resultados en 8 días'], capturas: [{ n: 1, temporalidad: '4H', tendencia: 'alcista', lectura: 'Sobre el soporte' }, { n: 2, temporalidad: '15 min', tendencia: 'alcista', lectura: 'Máximos crecientes' }],
+      estado: 'vigente', motivo_estado: 'Sigue sobre el soporte de 330', accion: 'mover_stop', nivel: 332, porcentaje: null, motivo: 'Asegurar parte de la ganancia bajo el último mínimo de 15 min', invalidacion: 'Cierre de 4H debajo de 330' }; });
+    await pg.click('#btnAnalizar');
+    await pg.waitForFunction(() => !document.getElementById('ge-resultado').hidden && document.querySelector('#ge-resultado .accion'), null, { timeout: 10000 });
+  };
   const tema = async (pg, t) => { await pg.click('label[for="tema-' + t + '"]'); await pg.waitForTimeout(80); };
 
   const { ctx, pg } = await preparar(390);
@@ -56,6 +69,12 @@ fs.mkdirSync(salida, { recursive: true });
       await pg.waitForTimeout(80);
       await completa(pg, 390, path.join(salida, '390-' + t + '-' + (tab === 'analizar' ? 'capturas' : tab) + '.png'));
     }
+  }
+  // Capturas: "Ya estoy dentro" con la propuesta de la IA, en los dos temas.
+  await dentro(pg);
+  for (const t of ['claro', 'oscuro']) {
+    await tema(pg, t);
+    await completa(pg, 390, path.join(salida, '390-' + t + '-capturas-dentro.png'));
   }
   await ctx.close();
   const g = await preparar(1280);
