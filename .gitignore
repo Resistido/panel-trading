@@ -6,5 +6,7 @@ package-lock.json
 test-page.html
 test-niveles-page.html
 test-gestion-page.html
+test-tablero-page.html
+test-capturas-page.html
 resultado-*.json
 shot-*.png

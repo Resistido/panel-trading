@@ -1,6 +1,6 @@
 # Instrucciones para cualquier sesión en este repositorio
 
-Proyecto: Panel de Trading de Johannes, una app de una sola página (`panel-trading.html`) que vive como artefacto de Claude. Versión actual: 3.1. Johannes opera CFD manualmente en Quantfury; el panel nunca ejecuta órdenes.
+Proyecto: Panel de Trading de Johannes, una app de una sola página (`panel-trading.html`) que vive como artefacto de Claude. Versión actual: 3.3 (incluye el modo "Ya estoy dentro" y el tablero de Hoy con modo oscuro). Johannes opera CFD manualmente en Quantfury; el panel nunca ejecuta órdenes.
 
 ## Idioma y estilo
 
@@ -38,8 +38,10 @@ Proyecto: Panel de Trading de Johannes, una app de una sola página (`panel-trad
 ## Pruebas
 
 - Instalación: `npm install` y luego `npx playwright install chromium`.
-- Correr todo: `npm test`. Hoy pasan 219 pruebas originales y 33 de niveles.
+- Correr todo: `npm test`. Hoy pasan 501 pruebas: 219 originales, 33 de niveles, 106 de "Ya estoy dentro" (`test-gestion.js`) y 143 del tablero, la ventana de sesión, el tema y el contraste (`test-tablero.js`).
+- Capturas para revisión visual: `npm run capturas` (guarda en `revision-visual/`).
 - Todo cambio va con pruebas nuevas, y las existentes deben seguir pasando.
+- Nunca borres, debilites ni saltes una prueba existente para que pase. Si un cambio legítimo (por ejemplo un id de elemento que cambia en el rediseño) obliga a actualizar una prueba, actualízala conservando lo que verifica y dilo en el resumen final.
 - No subas al repositorio los archivos que generan las pruebas (test-page.html, test-niveles-page.html, resultado-*.json, shot-*.png): agrégalos a un `.gitignore`.
 
 ## Al terminar
