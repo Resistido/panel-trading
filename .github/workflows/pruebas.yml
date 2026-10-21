@@ -1,0 +1,36 @@
+name: Pruebas
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Instalar Chromium para Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Correr las pruebas
+        run: npm test
+
+      - name: Guardar revision-visual
+        if: always() && hashFiles('revision-visual/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: revision-visual
+          path: revision-visual/
+          if-no-files-found: ignore
