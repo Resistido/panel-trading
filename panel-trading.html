@@ -142,7 +142,7 @@ h2 .count,h2 .fecha{font-family:var(--f-body);font-weight:500;text-transform:non
 .field{display:grid;gap:4px;min-width:0}
 .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media (min-width:560px){.fields.four{grid-template-columns:repeat(4,minmax(0,1fr))}}
-input[type="text"],select,textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-md);padding:10px 12px;min-height:var(--tap);width:100%;min-width:0}
+input[type="text"],input[type="date"],input[type="time"],select,textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-md);padding:10px 12px;min-height:var(--tap);width:100%;min-width:0}
 select{text-overflow:ellipsis}
 textarea{resize:vertical;font-size:.9rem}
 input.num{font-family:var(--f-data);text-align:right}
@@ -429,6 +429,43 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
 .curva .c-pto.neg{fill:var(--loss)}
 .curva text{font-family:var(--f-data);font-size:11px;fill:var(--muted)}
 .hoy-acciones{display:grid;gap:var(--s-2)}
+
+/* Protecciones (v3.5). Avisan y frenan, nunca inventan datos.
+   .aviso-p: bloque ámbar con icono y palabra cuando algo frena el registro (dato macro cerca, pausa tras pérdidas seguidas).
+   .nota-p: nota que solo avisa (calendario vacío, mitad del presupuesto, último día hábil de la semana). */
+.prot{display:grid;gap:var(--s-2);min-width:0}
+.prot:empty{display:none}
+.aviso-p{display:grid;gap:var(--s-2);padding:var(--s-3);border-radius:var(--r-lg);background:var(--warn-bg);border:1px solid var(--warn);color:var(--fg);min-width:0}
+.aviso-p p{font-size:var(--t-md);overflow-wrap:anywhere}
+.aviso-p p b{font-family:var(--f-data);font-weight:700}
+.ap-tag{display:inline-flex;align-items:center;gap:6px;justify-self:start;padding:3px 10px;border-radius:var(--r-sm);background:var(--warn-fill);color:var(--warn-ink);font-family:var(--f-display);font-weight:700;font-size:var(--t-sm);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.ap-tag .ico{width:16px;height:16px}
+.nota-p{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--s-2);align-items:start;padding:var(--s-2) var(--s-3);border-radius:var(--r-md);background:var(--surface-2);border-left:3px solid var(--warn);color:var(--fg);font-size:var(--t-sm);line-height:1.4;min-width:0}
+.nota-p[hidden]{display:none}
+.nota-p>.ico{margin-top:.1em;color:var(--warn)}
+.nota-p>span{overflow-wrap:anywhere;min-width:0}
+.nota-p b{font-family:var(--f-data);font-weight:700}
+.nota-p button{margin-top:var(--s-2)}
+.prot-linea{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--s-2);align-items:start;font-size:.92rem;min-width:0;padding-inline:var(--s-1)}
+.prot-linea>.ico{margin-top:.15em;color:var(--muted)}
+.prot-linea>span{overflow-wrap:anywhere;min-width:0}
+.prot-linea b{font-family:var(--f-data);font-weight:600}
+.check.bloq{cursor:not-allowed;color:var(--muted)}
+.check-nota{padding-left:30px;margin-top:-6px}
+.check-nota:empty{display:none}
+/* Datos macro: lista de próximos eventos y formulario mínimo (hora de Bolivia) */
+.mc-lista{list-style:none;margin:0;padding:0;display:grid}
+.mc-ev{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px var(--s-3);align-items:center;padding:var(--s-2) 0;border-bottom:1px solid var(--line);min-width:0}
+.mc-ev:last-child{border-bottom:0}
+.mc-ev strong{font-family:var(--f-display);font-weight:700;letter-spacing:.04em;overflow-wrap:anywhere}
+.mc-cuando{font-size:var(--t-sm);color:var(--muted);overflow-wrap:anywhere}
+.mc-cuando b{font-family:var(--f-data);font-weight:600;color:var(--fg)}
+.mc-cuando .chip{margin-left:4px}
+.mc-ev button{grid-row:1/span 2;grid-column:2}
+.mc-ev[data-e="pasado"] strong{color:var(--muted)}
+.mc-form{display:grid;gap:var(--s-2);min-width:0}
+.mc-fila{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s-3);align-items:end;min-width:0}
+.mc-form input[type="date"],.mc-form input[type="time"]{font-family:var(--f-data);padding-inline:10px}
 </style>
 
 <div class="wrap">
@@ -475,11 +512,13 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
             <div class="v-next" id="v-next"></div>
             <p class="v-res" id="v-res"></p>
           </div>
+          <div class="prot" id="tb-prot"></div>
           <div class="card ventana" id="ventana" data-nivel="">
             <p class="vt-head" id="vt-head"><span class="vt-lbl">VENTANA ACTUAL<span class="sr">:</span></span> <span class="vt-motivo">calculando…</span></p>
             <div class="vt-dia" id="vt-dia"></div>
             <p class="vt-horas"><span>Bolivia <b id="vt-bo">--:--</b></span><span>Nueva York <b id="vt-ny">--:--</b></span></p>
             <p class="vt-prox" id="vt-prox"></p>
+            <p class="nota-p" id="vt-finde" hidden></p>
             <p class="vt-nota">Tabla de partida según la hora de Nueva York, no una predicción. No tiene en cuenta los datos macro: revisalos igual.</p>
           </div>
           <div class="tb-bloque" id="presupuestos">
@@ -491,6 +530,22 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
           <div class="card" id="tb-abiertas">
             <div class="tb-h"><h3>Abiertas</h3><span id="tb-ab-n"></span></div>
             <div class="ab-lista" id="tb-ab-lista"><p class="empty">Cargando…</p></div>
+          </div>
+          <div class="card" id="tb-macro">
+            <div class="tb-h"><h3>Datos macro</h3><span>hora de Bolivia</span></div>
+            <ul class="mc-lista" id="mc-lista"></ul>
+            <form class="mc-form" id="mc-form" autocomplete="off" novalidate>
+              <div class="fields">
+                <div class="field"><label for="mc-fecha">Fecha</label><input type="date" id="mc-fecha"></div>
+                <div class="field"><label for="mc-hora">Hora (Bolivia)</label><input type="time" id="mc-hora"></div>
+              </div>
+              <div class="mc-fila">
+                <div class="field"><label for="mc-nombre">Nombre</label><input type="text" id="mc-nombre" maxlength="40" placeholder="CPI, Fed…"></div>
+                <button type="submit" id="btnMacro">Añadir</button>
+              </div>
+            </form>
+            <p class="hint" id="mc-msg" role="status"></p>
+            <p class="vt-nota">Los cargás vos desde tu calendario económico: el panel no consulta ninguno. Bolivia es UTC−4 todo el año. Con un dato a menos de 30 minutos (antes o después) no se registran entradas nuevas.</p>
           </div>
           <div class="card" id="tb-semana">
             <div class="tb-h"><h3>Resultados de la semana</h3><span>solo operaciones cerradas</span></div>
@@ -617,10 +672,12 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
 
       <fieldset class="checklist">
         <legend>Antes de entrar</legend>
-        <label class="check"><input type="checkbox" id="chk-macro"> <span>No hay un dato macro de alto impacto en los próximos 30 minutos (ni salió hace menos de 30).</span></label>
+        <label class="check" id="chk-macro-lbl"><input type="checkbox" id="chk-macro" aria-describedby="chk-macro-nota"> <span>No hay un dato macro de alto impacto en los próximos 30 minutos (ni salió hace menos de 30).</span></label>
+        <p class="hint check-nota" id="chk-macro-nota"></p>
         <label class="check"><input type="checkbox" id="chk-horario"> <span>Es horario regular de Wall Street (nada de acciones en after-hours).</span></label>
         <label class="check"><input type="checkbox" id="chk-stop"> <span>Tengo el SL1 listo para ponerlo en el mismo momento en que entro.</span></label>
       </fieldset>
+      <div class="prot" id="op-prot"></div>
       <button type="button" class="primary wide" id="btnRegistrar" disabled>Completá entrada, SL1, TP1 y TP2</button>
       <button type="button" class="ghost wide" id="btnYaEntre" hidden>Ya entré igual</button>
       <p class="hint" id="calcMsg" role="status"></p>
@@ -692,7 +749,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   </main>
 
   <footer>
-    <p class="pie-marca"><span aria-hidden="true">/</span>Centinela · v3.4</p>
+    <p class="pie-marca"><span aria-hidden="true">/</span>Centinela · v3.5</p>
     <p>Centinela calcula con tus reglas, pero no ve tu cuenta de Quantfury. Antes de entrar, mirá siempre el precio allí.</p>
     <p>El nivel de seguridad mide qué tan bien cumple el setup tus criterios; no es la probabilidad de ganar. Un gap o un deslizamiento puede ejecutar el stop peor de lo previsto.</p>
   </footer>
@@ -722,11 +779,11 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     { id: 'lectura', nombre: 'Claridad de las capturas', max: 10 }
   ];
   var TABS = ['hoy', 'analizar', 'operar', 'abiertas', 'diario'];
-  var S = { cfg: clone(DEF), trades: [], senales: [], resumenes: [], revisiones: [], loaded: false, local: false, owner: null, downloads: null, est: null, mkt: null, capListo: false,
+  var S = { cfg: clone(DEF), trades: [], senales: [], resumenes: [], revisiones: [], eventos: [], eventosError: false, loaded: false, local: false, owner: null, downloads: null, est: null, mkt: null, capListo: false,
     ui: { panel: null, per: 'semana', confirmYa: false, cfgDirty: false, confirmReset: false, err: {}, motivo: {}, plan: {}, senalId: null, seguridad: null, opciones: [], opcionSel: -1,
       tab: 'hoy', tipoAuto: true, verPor: 'nivel', analisis: null, analisisId: null, analizando: false, chkTarget: null, chkBusy: {}, revisando: false, thumbUrls: [],
-      modoCap: 'entrada', analizandoQue: 'entrada', gePos: null, gestion: null, precios: {}, tema: 'auto' } };
-  var TRADES = null, CFGDOC = null, SENALES = null, RESUMENES = null, REVISIONES = null, SAMPLE = null, LIMITES = null, ARCHIVOS = [], CTL = null;
+      modoCap: 'entrada', analizandoQue: 'entrada', gePos: null, gestion: null, precios: {}, tema: 'auto', quitarEvento: null, senBorrar: null } };
+  var TRADES = null, CFGDOC = null, SENALES = null, RESUMENES = null, REVISIONES = null, EVENTOS = null, SAMPLE = null, LIMITES = null, ARCHIVOS = [], CTL = null;
 
   /* ---------- Utilidades ---------- */
   function $(id) { return document.getElementById(id); }
@@ -1054,6 +1111,117 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     return { d: pts.map(function (p, i) { return (i ? 'L' : 'M') + p.x + ' ' + p.y; }).join(' '), cero: y(0), puntos: pts.slice(1), min: mn, max: mx };
   }
 
+  /* ---------- Protecciones (funciones puras): avisan y frenan, nunca inventan datos ---------- */
+  /* Calendario macro: lo carga Johannes a mano, en hora de Bolivia (UTC−4 fijo, sin horario de verano). El panel no consulta ningún calendario.
+     Regla 6: no se entra a menos de MACRO_MIN minutos de un dato, ni antes ni después. Los datos que pasaron hace más de MACRO_OCULTAR_MIN no se muestran. */
+  var MACRO_MIN = 30, MACRO_OCULTAR_MIN = 120, BO_UTC = -4;
+  /* Fecha ('AAAA-MM-DD' o 'DD/MM/AAAA') y hora ('HH:MM') de Bolivia → milisegundos. NaN si no es una fecha y hora reales. */
+  function instanteBolivia(fecha, hora) {
+    var f = String(fecha == null ? '' : fecha).trim(), h = String(hora == null ? '' : hora).trim(), m, y, mo, d;
+    if ((m = f.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) { y = +m[1]; mo = +m[2]; d = +m[3]; }
+    else if ((m = f.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/))) { d = +m[1]; mo = +m[2]; y = +m[3]; }
+    else return NaN;
+    var t = h.match(/^(\d{1,2})[:.](\d{2})$/); if (!t || +t[1] > 23 || +t[2] > 59) return NaN;
+    var fechaUtc = new Date(Date.UTC(y, mo - 1, d));
+    if (fechaUtc.getUTCFullYear() !== y || fechaUtc.getUTCMonth() !== mo - 1 || fechaUtc.getUTCDate() !== d) return NaN;
+    return Date.UTC(y, mo - 1, d, +t[1] - BO_UTC, +t[2]);
+  }
+  /* Los eventos guardados, limpios y en orden de hora. */
+  function eventosValidos(eventos) {
+    return (eventos || []).filter(function (e) { return e && isNum(Number(e.ts)) && String(e.nombre == null ? '' : e.nombre).trim(); })
+      .map(function (e) { return { id: e.id, ts: Number(e.ts), nombre: String(e.nombre).trim() }; })
+      .sort(function (a, b) { return a.ts - b.ts; });
+  }
+  /* Lo que se muestra en la tarjeta: los que vienen y los que pasaron hace 2 horas o menos. */
+  function eventosVisibles(eventos, ts) { return eventosValidos(eventos).filter(function (e) { return e.ts >= ts - MACRO_OCULTAR_MIN * 60000; }); }
+  /* Valida un evento nuevo del formulario. Devuelve { evento: { ts, nombre } } o { error }. */
+  function nuevoEvento(fecha, hora, nombre, eventos, ts) {
+    var n = String(nombre == null ? '' : nombre).replace(/\s+/g, ' ').trim().slice(0, 40), en = instanteBolivia(fecha, hora);
+    if (!isNum(en)) return { error: 'Elegí la fecha y la hora del dato (hora de Bolivia).' };
+    if (!n) return { error: 'Escribí el nombre del dato (por ejemplo, CPI o Fed).' };
+    if (en < ts - MACRO_OCULTAR_MIN * 60000) return { error: 'Ese dato salió hace más de 2 horas: no hace falta cargarlo.' };
+    if (eventosValidos(eventos).some(function (e) { return e.ts === en && sinTildes(e.nombre) === sinTildes(n); })) return { error: 'Ese dato ya está cargado.' };
+    return { evento: { ts: en, nombre: n } };
+  }
+  /* ¿Hay un dato macro cerca? Ventana abierta (dato − 30 min, dato + 30 min): a 30 minutos justos ya no está cerca.
+     cerca: el instante cae en la ventana de algún dato (de cualquier día). Si las ventanas de varios datos se tocan, desde/hasta abarcan el bloque entero.
+     sin_datos: la lista está vacía o no tiene ningún dato de hoy (Bolivia). Nunca quiere decir "no hay datos macro": quiere decir que no los cargaste.
+     libre: hay datos de hoy y ninguno cerca; evento es el próximo que viene (de cualquier día) o null si no queda ninguno. */
+  function proximidadMacro(eventos, ts) {
+    var lista = eventosValidos(eventos), V = MACRO_MIN * 60000, bloques = [];
+    lista.forEach(function (e) {
+      var b = bloques[bloques.length - 1];
+      if (b && e.ts - V <= b.hasta) { b.hasta = Math.max(b.hasta, e.ts + V); b.eventos.push(e); }
+      else bloques.push({ desde: e.ts - V, hasta: e.ts + V, eventos: [e] });
+    });
+    var bl = bloques.filter(function (b) { return ts > b.desde && ts < b.hasta; })[0];
+    if (bl) {
+      var cerca = bl.eventos.slice().sort(function (a, b) { return Math.abs(a.ts - ts) - Math.abs(b.ts - ts); })[0];
+      return { estado: 'cerca', evento: cerca, desde: bl.desde, hasta: bl.hasta, eventos: bl.eventos };
+    }
+    var hoy = claveDia(ts);
+    if (!lista.some(function (e) { return claveDia(e.ts) === hoy; })) return { estado: 'sin_datos', evento: null, desde: null, hasta: null, eventos: [] };
+    var prox = lista.filter(function (e) { return e.ts > ts; })[0] || null;
+    var bp = prox ? bloques.filter(function (b) { return b.eventos.indexOf(prox) >= 0; })[0] : null;
+    return { estado: 'libre', evento: prox, desde: bp ? bp.desde : null, hasta: bp ? bp.hasta : null, eventos: [] };
+  }
+  /* "Dato macro «CPI» a las 08:30 (Bolivia): esperá hasta 09:00" (con "y N más" si hay varios en el mismo bloque). */
+  function textoMacro(p) {
+    if (!p || p.estado !== 'cerca') return '';
+    return 'Dato macro «' + p.evento.nombre + '» a las ' + hhmm(p.evento.ts, TZ_BO) + ' (Bolivia)' + (p.eventos.length > 1 ? ' y ' + (p.eventos.length - 1) + ' más' : '') + ': esperá hasta ' + hhmm(p.hasta, TZ_BO);
+  }
+
+  /* Fin de semana: el último día hábil de Wall Street de la semana (según la hora de Nueva York; normalmente viernes, jueves si el viernes es feriado).
+     Solo ese día; fin de semana, feriado u otro día: null. No sabe si el broker cobra swap ni cuánto: no da montos. Nunca bloquea. */
+  function avisoFinDeSemana(ts) {
+    var p = partes(ts, TZ_NY), clave = p.year + '-' + p.month + '-' + p.day;
+    if (!esHabil(clave)) return null;
+    var wd = diaSemana(clave);
+    for (var k = 1; k <= 7 - wd; k++) if (esHabil(sumarDias(clave, k))) return null;
+    var sig = clave; do { sig = sumarDias(sig, 1); } while (!esHabil(sig));
+    var dia = DIAS[diaSemana(sig)];
+    return { dia: clave, proximo: sig,
+      texto: 'Último día hábil de la semana' + (wd < 5 ? ' (el viernes no abre Wall Street)' : '') + ': si dejás una posición abierta el fin de semana, el ' + dia + ' puede abrir con un salto de precio (gap) que ejecute tu stop peor de lo previsto. Si tu broker cobra swap por mantenerla, también lo pagarías.',
+      corto: 'Último día hábil de la semana: si la dejás abierta, el ' + dia + ' puede abrir con un gap que ejecute el stop peor de lo previsto.' };
+  }
+
+  /* Pausa tras rachas y aviso a la mitad del presupuesto. Los números viven acá (no en cfg, para no tocar la forma de los datos guardados). */
+  var PAUSA_RACHA = { perdidasSeguidas: 2, minutos: 30 };
+  var AVISO_MITAD = 0.5;
+  var NUMEROS_TXT = ['Cero', 'Una', 'Dos', 'Tres', 'Cuatro', 'Cinco', 'Seis'];
+  /* Resultado de una operación cerrada: 1 ganancia, −1 pérdida, 0 en cero (mismo margen que el diario). */
+  function signoResultado(t) { var x = isNum(t.pnl) ? t.pnl : isNum(t.r) ? t.r : 0; return x > 0.004 ? 1 : x < -0.004 ? -1 : 0; }
+  /* Solo operaciones cerradas hoy (Bolivia), en orden de cierre. Una ganancia reinicia la racha; una en cero no suma ni reinicia.
+     La pausa se cuenta desde el cierre de la última pérdida de la racha. cfg no se usa hoy (la regla es PAUSA_RACHA); regla permite probar otros números. */
+  function estadoPausa(trades, cfg, ts, regla) {
+    regla = regla || PAUSA_RACHA;
+    var hoy = claveDia(ts), racha = 0, ultima = null;
+    (trades || []).filter(function (t) { return t && t.estado === 'cerrada' && t.cierre && isNum(Number(t.cierre.ts)) && claveDia(Number(t.cierre.ts)) === hoy; })
+      .sort(function (a, b) { return Number(a.cierre.ts) - Number(b.cierre.ts); })
+      .forEach(function (t) { var s = signoResultado(t); if (s < 0) { racha++; ultima = Number(t.cierre.ts); } else if (s > 0) racha = 0; });
+    var out = { pausa: false, hasta: null, restanteMin: 0, motivo: '', racha: racha };
+    if (racha < regla.perdidasSeguidas || ultima === null) return out;
+    var hasta = ultima + regla.minutos * 60000;
+    if (ts >= hasta) return out;
+    out.pausa = true; out.hasta = hasta; out.restanteMin = Math.ceil((hasta - ts) / 60000);
+    out.motivo = (NUMEROS_TXT[racha] || racha) + ' pérdidas seguidas: es momento de parar y respirar. Volvé a mirar el mercado a las ' + hhmm(hasta, TZ_BO) + ' (Bolivia).';
+    return out;
+  }
+  /* Aviso (solo texto) cuando las pérdidas realizadas del día llegan a AVISO_MITAD del presupuesto diario. Al llegar al tope ya lo dice el semáforo. */
+  function avisoMitad(estado, cfg) {
+    if (!estado || !cfg || !(cfg.diario > 0)) return null;
+    var p = estado.perdHoy;
+    if (!(p > 0) || p < cfg.diario * AVISO_MITAD - 1e-9 || p >= cfg.diario - 1e-9) return null;
+    return { perdidas: p, limite: cfg.diario, texto: 'Las pérdidas de hoy suman ' + money(p) + ' de ' + money(cfg.diario) + ' (' + nf0.format(p / cfg.diario * 100) + ' % del presupuesto diario). Buen momento para bajar el ritmo.' };
+  }
+  /* Lo que frena el botón de registrar ("Ya entré igual" sigue disponible y lo anota como regla rota). */
+  function bloqueosProteccion(macro, pausa) {
+    var out = [];
+    if (macro && macro.estado === 'cerca') out.push({ motivo: textoMacro(macro), regla: 'Entrada a menos de ' + MACRO_MIN + ' min de un dato macro' });
+    if (pausa && pausa.pausa) out.push({ motivo: 'Pausa: ' + pausa.restanteMin + ' min tras ' + pausa.racha + ' pérdidas seguidas (hasta las ' + hhmm(pausa.hasta, TZ_BO) + ')', regla: 'Entrada durante la pausa tras pérdidas seguidas' });
+    return out;
+  }
+
   /* Tema: Automático (sigue al sistema), Claro u Oscuro. Se recuerda solo en este navegador. */
   var TEMAS = { auto: null, claro: 'light', oscuro: 'dark' }, TEMA_CLAVE = 'panel-trading-tema';
   function temaAtributo(eleccion) { return Object.prototype.hasOwnProperty.call(TEMAS, eleccion) ? TEMAS[eleccion] : null; }
@@ -1283,6 +1451,30 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     if (S.local) { var s0 = S.senales.find(function (x) { return x.id === id; }); if (s0) { s0.estado = 'operada'; s0.tradeTs = ts; } return; }
     SENALES.doc(id).update({ estado: 'operada', tradeTs: ts }).catch(function () { });
   }
+  /* PLATAFORMA: borra una señal de la colección 'senales'. No toca las operaciones del diario. En modo local, de la memoria. */
+  function borrarSenal(id) {
+    if (S.local) { S.senales = S.senales.filter(function (x) { return x.id !== id; }); renderDiario(); renderComprobar(); return Promise.resolve(); }
+    return conReintento(function () { return SENALES.doc(id).delete(); });
+  }
+  /* PLATAFORMA: datos macro en la colección 'eventos' (un documento por dato: ts en milisegundos y nombre). En modo local quedan en memoria. */
+  function escucharEventos(db) {
+    EVENTOS = db.collection('eventos');
+    EVENTOS.orderBy('ts', 'desc').limit(300).onSnapshot(function (snap) {
+      S.eventos = snap.docs.map(function (d) { var x = clone(d.data()); x.id = d.id; return x; }); S.eventosError = false;
+      if (S.loaded) renderAll();
+    }, function () { S.eventosError = true; if (S.loaded) renderAll(); });
+  }
+  /* PLATAFORMA: guarda un dato macro nuevo en 'eventos'. */
+  function guardarEvento(ev) {
+    var id = 'e' + ev.ts + '-' + Math.random().toString(36).slice(2, 6);
+    if (S.local) { S.eventos = S.eventos.concat([{ id: id, ts: ev.ts, nombre: ev.nombre }]); renderAll(); return Promise.resolve(); }
+    return conReintento(function () { return EVENTOS.doc(id).set({ ts: ev.ts, nombre: ev.nombre }); });
+  }
+  /* PLATAFORMA: quita un dato macro de 'eventos'. */
+  function quitarEvento(id) {
+    if (S.local) { S.eventos = S.eventos.filter(function (x) { return x.id !== id; }); renderAll(); return Promise.resolve(); }
+    return conReintento(function () { return EVENTOS.doc(id).delete(); });
+  }
 
   /* ---------- Render: reloj y estado ---------- */
   function renderClock() {
@@ -1366,7 +1558,60 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   function renderTablero() {
     if (!S.loaded || !S.est) return;
     var ahora = Date.now();
-    renderAbCompacta(ahora); renderSemana();
+    renderAbCompacta(ahora); renderSemana(); renderProtHoy(protecciones(ahora), ahora); renderMacro(ahora);
+  }
+
+  /* ---------- Render: protecciones (dato macro, pausa, mitad del presupuesto, fin de semana) ---------- */
+  /* Junta las protecciones del momento con los datos guardados; las cuentas las hacen las funciones puras. */
+  function protecciones(ts) {
+    var macro = proximidadMacro(S.eventos, ts), pausa = estadoPausa(S.trades, S.cfg, ts);
+    return { ts: ts, macro: macro, pausa: pausa, finde: avisoFinDeSemana(ts), mitad: S.est ? avisoMitad(S.est, S.cfg) : null, bloqueos: bloqueosProteccion(macro, pausa) };
+  }
+  /* Re-dibuja solo si cambió: el reloj re-dibuja cada 30 s y así no se pierde el foco ni se repiten anuncios. */
+  function setHtml(el, h) { if (el.__html !== h) { el.__html = h; el.innerHTML = h; } }
+  function avisoHtml(tag, ico, html) { return '<div class="aviso-p"><span class="ap-tag">' + icono(ico) + esc(tag) + '</span><p>' + html + '</p></div>'; }
+  function notaHtml(html, extra) { return '<div class="nota-p">' + icono('alerta') + '<span>' + html + (extra || '') + '</span></div>'; }
+  function cuandoEvento(ts, ahora, conHtml) {
+    var d = claveDia(ts), hoy = claveDia(ahora);
+    var dia = d === hoy ? 'hoy' : d === sumarDias(hoy, 1) ? 'mañana' : d === sumarDias(hoy, -1) ? 'ayer' : DIAS[diaSemana(d)] + ' ' + ddmm(ts);
+    return dia + ' a las ' + (conHtml ? '<b>' + hhmm(ts, TZ_BO) + '</b>' : hhmm(ts, TZ_BO));
+  }
+  var SI_YA_ENTRASTE = ' Si ya entraste, anotala con «Ya entré igual»: queda marcada en el diario.';
+  function textoPausa(p) { return esc(p.motivo) + ' Lo que tenés abierto lo seguís gestionando igual.'; }
+  function renderProtHoy(pr, ahora) {
+    var m = pr.macro, h = '';
+    if (m.estado === 'cerca') h += avisoHtml('Esperá', 'alerta', esc(textoMacro(m)) + ' para entrar.');
+    if (pr.pausa.pausa) h += avisoHtml('Pausa: ' + pr.pausa.restanteMin + ' min', 'reloj', textoPausa(pr.pausa));
+    if (m.estado === 'libre') h += '<p class="prot-linea">' + icono('reloj') + '<span>' + (m.evento ? 'Próximo dato: <strong>' + esc(m.evento.nombre) + '</strong> ' + cuandoTxt(m.evento.ts, ahora) + '.' : 'Ya salieron los datos macro que cargaste para hoy.') + '</span></p>';
+    else if (m.estado === 'sin_datos') h += notaHtml((S.eventosError ? 'No pude leer tu calendario macro' : 'No cargaste datos macro para hoy') + ': revisalos vos.', '<br><button type="button" class="small ghost" data-ir-macro>Cargar datos macro</button>');
+    if (pr.mitad) h += notaHtml(esc(pr.mitad.texto));
+    setHtml($('tb-prot'), h);
+    var fd = $('vt-finde'); fd.hidden = !pr.finde;
+    setHtml(fd, pr.finde ? icono('alerta') + '<span>' + esc(pr.finde.texto) + '</span>' : '');
+  }
+  function renderMacro(ahora) {
+    var box = $('mc-lista'), lista = eventosVisibles(S.eventos, ahora), V = MACRO_MIN * 60000;
+    if (!$('mc-fecha').value) $('mc-fecha').value = claveDia(ahora);
+    if (!lista.length) { setHtml(box, '<li class="empty">' + (S.eventosError ? 'No pude leer tu calendario macro. Recargá la página.' : 'No hay datos cargados. Mirá el calendario económico y cargá los de alto impacto de hoy (inflación, empleo, Fed…).') + '</li>'); return; }
+    setHtml(box, lista.map(function (e) {
+      var est = ahora > e.ts - V && ahora < e.ts + V ? 'cerca' : e.ts > ahora ? 'futuro' : 'pasado', conf = S.ui.quitarEvento === e.id;
+      var chip = est === 'cerca' ? '<span class="chip warn">Cerca: no entres</span>' : est === 'futuro' ? '<span class="chip">en ' + duracion((e.ts - ahora) / 60000) + '</span>' : '<span class="chip">Ya salió</span>';
+      return '<li class="mc-ev" data-e="' + est + '"><strong>' + esc(e.nombre) + '</strong><span class="mc-cuando">' + cuandoEvento(e.ts, ahora, true) + ' ' + chip + '</span>' +
+        '<button type="button" class="small ' + (conf ? 'danger' : 'ghost') + '" data-quitar-ev="' + esc(e.id) + '" aria-label="' + esc((conf ? 'Confirmar: quitar ' : 'Quitar ') + e.nombre) + '">' + (conf ? '¿Quitar?' : 'Quitar') + '</button></li>';
+    }).join(''));
+  }
+  function renderProtOperar(pr) {
+    var m = pr.macro, chk = $('chk-macro'), cerca = m.estado === 'cerca';
+    if (cerca) chk.checked = false;
+    chk.disabled = cerca; $('chk-macro-lbl').classList.toggle('bloq', cerca);
+    $('chk-macro-nota').textContent = cerca ? 'No se puede marcar: ' + textoMacro(m) + '.'
+      : m.estado === 'sin_datos' ? (S.eventosError ? 'No pude leer tu calendario: revisá los datos macro vos antes de marcar.' : 'Tu calendario de hoy está vacío: revisá los datos macro vos antes de marcar.')
+      : m.evento ? 'Tu calendario: próximo dato «' + m.evento.nombre + '» ' + cuandoEvento(m.evento.ts, pr.ts) + ' (Bolivia).' : 'Tu calendario: ya salieron los datos de hoy.';
+    var h = '';
+    if (cerca) h += avisoHtml('Esperá', 'alerta', esc(textoMacro(m)) + '.' + SI_YA_ENTRASTE);
+    if (pr.pausa.pausa) h += avisoHtml('Pausa: ' + pr.pausa.restanteMin + ' min', 'reloj', esc(pr.pausa.motivo) + SI_YA_ENTRASTE);
+    if (pr.finde) h += notaHtml(esc(pr.finde.texto));
+    setHtml($('op-prot'), h);
   }
   function renderEstado() {
     $('fecha-hoy').textContent = new Intl.DateTimeFormat('es-BO', { timeZone: TZ_BO, weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -1416,7 +1661,15 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   }
   var CHECKS = [['chk-macro', 'Sin revisar datos macro'], ['chk-horario', 'Sin confirmar horario regular'], ['chk-stop', 'Stop no preparado']];
   function checklistFaltan() { return CHECKS.filter(function (c) { return !$(c[0]).checked; }).map(function (c) { return c[1]; }); }
-  function reglasRotasDe(r) { return r.bloqueos.filter(function (b) { return b.regla; }).map(function (b) { return b.regla; }).concat(checklistFaltan()); }
+  /* Reglas que rompe la entrada: bloqueos de la calculadora, casillas sin marcar y protecciones activas (dato macro cerca, pausa).
+     Con un dato macro cerca la casilla macro no se puede marcar: cuenta como la protección, no dos veces. */
+  function reglasRotasDe(r, pr) {
+    pr = pr || protecciones(Date.now());
+    var cerca = pr.macro.estado === 'cerca';
+    return r.bloqueos.filter(function (b) { return b.regla; }).map(function (b) { return b.regla; })
+      .concat(checklistFaltan().filter(function (x) { return !(cerca && x === CHECKS[0][1]); }))
+      .concat(pr.bloqueos.map(function (b) { return b.regla; }));
+  }
   function kv(label, value, extra) { return '<div class="kv' + (extra || '') + '"><span>' + label + '</span><b>' + value + '</b></div>'; }
 
   function renderCalc() {
@@ -1424,6 +1677,8 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     ['0', '1', '2', '3'].forEach(function (i) { $('f-n' + i + '-v').textContent = moneyN(S.cfg.niveles[+i]); });
     var inp = leerForm();
     if (!S.est) { out.innerHTML = ''; return; }
+    var pr = protecciones(Date.now());
+    renderProtOperar(pr);
     var r = calcular(inp, S.est, S.cfg);
     var setBtn = function (dis, txt) { btn.disabled = dis; btn.textContent = txt; };
     ya.hidden = true;
@@ -1455,9 +1710,10 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
 
     if (!S.loaded) { setBtn(true, 'Cargando tus datos…'); return; }
     if (r.fatal) { setBtn(true, 'Corregí los datos para seguir'); return; }
-    var rotas = reglasRotasDe(r);
+    var rotas = reglasRotasDe(r, pr);
     if (rotas.length) {
-      setBtn(true, 'No cumple: ' + rotas[0] + (rotas.length > 1 ? ' (y ' + (rotas.length - 1) + ' más)' : ''));
+      /* Una protección activa (dato macro cerca, pausa) se explica con su propio motivo. */
+      setBtn(true, (pr.bloqueos.length ? pr.bloqueos[0].motivo : 'No cumple: ' + rotas[0]) + (rotas.length > 1 ? ' (y ' + (rotas.length - 1) + ' más)' : ''));
       ya.hidden = false;
       ya.className = S.ui.confirmYa ? 'danger wide' : 'ghost wide';
       ya.textContent = S.ui.confirmYa ? 'Tocá otra vez para anotarla igual' : 'Ya entré igual: anotarla con ' + rotas.length + (rotas.length === 1 ? ' regla rota' : ' reglas rotas');
@@ -1535,7 +1791,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   function renderAbiertas() {
     var box = $('listaAbiertas');
     if (!S.loaded) return;
-    var ab = S.est.abiertas.slice().sort(function (a, b) { return a.ts - b.ts; });
+    var ab = S.est.abiertas.slice().sort(function (a, b) { return a.ts - b.ts; }), fd = avisoFinDeSemana(Date.now());
     $('ab-count').textContent = ab.length ? '(' + ab.length + ')' : '';
     conservar(box, function () {
       if (!ab.length) { box.innerHTML = '<p class="empty">No tenés posiciones abiertas. Cuando registres una entrada aparece acá, con botones para el TP1, mover el stop y cerrar.</p>'; return; }
@@ -1548,6 +1804,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
           '<dl class="lv"><div><dt>Entrada</dt><dd>' + price(t.entrada) + '</dd></div><div><dt>' + stopLbl + '</dt><dd>' + price(t.stopActual) + '</dd></div>' +
           '<div><dt>TP1</dt><dd class="' + (t.tp1Hecho ? 'done' : '') + '">' + price(t.tp1) + '</dd></div><div><dt>TP2</dt><dd>' + price(t.tp2) + '</dd></div></dl>' +
           '<p class="meta">' + units(t.unidadesAbiertas) + ' u abiertas · riesgo abierto ' + money(riesgoAbiertoDe(t)) + ' · margen ' + money(t.unidadesAbiertas * t.entrada / S.cfg.apalancamiento) + realizado + ' · entró ' + ddmm(t.ts) + ' ' + hhmm(t.ts) + '</p>' +
+          (fd ? notaHtml(esc(fd.corto)) : '') +
           '<div class="live"><input type="text" class="num" inputmode="decimal" placeholder="Precio ahora" aria-label="Precio ahora de ' + esc(t.activo) + '" data-keep="now-' + t.id + '" data-now="' + t.id + '"><div class="float" id="fl-' + t.id + '"></div></div>' +
           '<div class="acts"><button type="button" class="small" data-act="tp1" data-id="' + t.id + '">' + (t.tp1Hecho ? 'Otra salida parcial' : 'TP1 / salida parcial') + '</button>' +
           '<button type="button" class="small" data-act="stop" data-id="' + t.id + '">Mover stop</button><button type="button" class="small" data-act="cerrar" data-id="' + t.id + '">Cerrar</button>' +
@@ -2225,14 +2482,15 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     if (!sen.length) { list.innerHTML = '<p class="empty">Todavía no hay señales en este período. Cada señal que pegues en Operar o que salga del lector de capturas aparece acá para comprobarla.</p>'; return; }
     var puede = puedeImagenes();
     list.innerHTML = sen.slice(0, 30).map(function (x) {
-      var c = x.comprobacion, busy = S.ui.chkBusy[x.id];
+      var c = x.comprobacion, busy = S.ui.chkBusy[x.id], conf = S.ui.senBorrar === x.id;
       var res = c ? '<span class="chip ' + (c.resultado === 'sl' ? 'bad' : (c.resultado === 'tp1' || c.resultado === 'tp2') ? 'ok' : '') + '">' + esc(RES_TXT[c.resultado] || c.resultado) + (c.confianza_lectura ? ' · lectura ' + esc(c.confianza_lectura) : '') + '</span>' : '';
       return '<div class="sig"><div class="sig-top"><div class="who"><strong>' + esc(x.activo || '?') + '</strong>' + (x.dir === 'venta' ? '<span class="chip sell">Venta</span>' : '<span class="chip buy">Compra</span>') +
         '<span class="chip">' + esc(x.origen || 'Sin origen') + '</span>' + (x.estado === 'operada' ? '<span class="chip info">Operada</span>' : '<span class="chip">Sin operar</span>') + '</div>' + res + '</div>' +
         '<p class="meta">' + ddmm(x.ts) + ' ' + hhmm(x.ts) + ' · entrada ' + price(Number(x.entrada)) + ' · SL1 ' + price(Number(x.sl1)) + ' · TP1 ' + price(Number(x.tp1)) + ' · TP2 ' + price(Number(x.tp2)) +
         (x.analisis && isNum(Number(x.analisis.puntaje)) ? ' · seguridad ' + Number(x.analisis.puntaje) + '/100' : '') + '</p>' +
         (c && c.detalle ? '<p class="meta-line">' + esc(c.detalle) + '</p>' : '') +
-        (puede ? '<div class="row"><button type="button" class="small" data-chk="' + esc(x.id) + '"' + (busy ? ' disabled' : '') + '>' + (busy ? 'Comprobando…' : c ? 'Comprobar de nuevo' : 'Comprobar con captura') + '</button></div>' : '') +
+        '<div class="row">' + (puede ? '<button type="button" class="small" data-chk="' + esc(x.id) + '"' + (busy ? ' disabled' : '') + '>' + (busy ? 'Comprobando…' : c ? 'Comprobar de nuevo' : 'Comprobar con captura') + '</button>' : '') +
+        '<button type="button" class="small ' + (conf ? 'danger' : 'ghost') + '" data-sen-borrar="' + esc(x.id) + '"' + (busy ? ' disabled' : '') + ' aria-label="' + esc((conf ? 'Confirmar: eliminar la señal de ' : 'Eliminar la señal de ') + (x.activo || '?')) + '">' + (conf ? '¿Seguro?' : 'Eliminar') + '</button></div>' +
         '</div>';
     }).join('');
   }
@@ -2290,7 +2548,12 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
       'TP1 y TP2 con beneficio/riesgo de al menos <b>1:' + ratio(c.rrMin) + '</b> cada uno; en market urgente se mide con el precio de ahora.',
       'SL1 fijo: nunca se aleja. Al TP1 se cierra la mitad y el stop va a la entrada o mejor (SL2).',
       'NO ENTRES SI el precio pasó la entrada ± <b>' + ratio(c.noEntresK) + '</b> × la distancia al stop. Para registrar hay que escribir el precio de Quantfury.',
-      'Apuesta de evento: riesgo máximo <b>' + money(c.eventoRiesgo) + '</b> y posición máxima <b>' + money(c.eventoNocional) + '</b>.'
+      'Apuesta de evento: riesgo máximo <b>' + money(c.eventoRiesgo) + '</b> y posición máxima <b>' + money(c.eventoNocional) + '</b>.',
+      'Datos macro: con un dato de tu calendario a menos de <b>' + MACRO_MIN + ' min</b> (antes o después) no se registran entradas nuevas. El calendario lo cargás vos en Hoy; si está vacío, el panel no lo sabe.',
+      'Pausa tras rachas: después de <b>' + PAUSA_RACHA.perdidasSeguidas + '</b> operaciones cerradas seguidas con pérdida, <b>' + PAUSA_RACHA.minutos + ' min</b> sin entradas nuevas desde el último cierre. Una ganancia reinicia la cuenta; una en cero no suma ni reinicia.',
+      'Mitad del presupuesto: cuando las pérdidas del día llegan al <b>' + nf0.format(AVISO_MITAD * 100) + ' %</b> del presupuesto diario, Hoy te lo dice (no bloquea).',
+      'Último día hábil de la semana: aviso del gap del fin de semana en Hoy, Operar y Abiertas (no bloquea).',
+      'Con un dato macro cerca o en pausa, «Ya entré igual» sigue disponible y la operación queda marcada en el diario.'
     ].map(function (x) { return '<li>' + x + '</li>'; }).join('');
     if (S.ui.cfgDirty) return;
     CFG_CAMPOS.forEach(function (k) { $('s-' + k).value = String(c[k]).replace('.', ','); });
@@ -2554,6 +2817,33 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     if (precio > 0) S.ui.precios[id] = { precio: precio, ts: Date.now() }; else delete S.ui.precios[id];
     renderTablero();
   }
+  /* ---------- Eventos: datos macro (Hoy) ---------- */
+  function enfocar(sel) { var el = document.querySelector(sel); if (el) el.focus(); }
+  $('mc-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = $('mc-msg'), b = $('btnMacro'), r = nuevoEvento($('mc-fecha').value, $('mc-hora').value, $('mc-nombre').value, S.eventos, Date.now());
+    if (r.error) { msg.className = 'hint err'; msg.textContent = r.error; return; }
+    b.disabled = true;
+    guardarEvento(r.evento).then(function () {
+      $('mc-hora').value = ''; $('mc-nombre').value = '';
+      msg.className = 'hint ok'; msg.textContent = 'Anotado: ' + r.evento.nombre + ', ' + cuandoEvento(r.evento.ts, Date.now()) + ' (Bolivia).';
+    }, function (e2) { msg.className = 'hint err'; msg.textContent = mensajeError(e2); }).then(function () { b.disabled = false; });
+  });
+  /* Quitar pide confirmación: el primer toque pregunta, el segundo quita. */
+  $('mc-lista').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-quitar-ev]'); if (!b) return;
+    var id = b.getAttribute('data-quitar-ev'), msg = $('mc-msg');
+    if (S.ui.quitarEvento !== id) { S.ui.quitarEvento = id; renderMacro(Date.now()); enfocar('#mc-lista [data-quitar-ev="' + id + '"]'); return; }
+    S.ui.quitarEvento = null; b.disabled = true;
+    quitarEvento(id).then(function () { msg.className = 'hint ok'; msg.textContent = 'Dato quitado del calendario.'; }, function (e2) { msg.className = 'hint err'; msg.textContent = mensajeError(e2); })
+      .then(function () { renderMacro(Date.now()); });
+  });
+  $('tb-prot').addEventListener('click', function (e) {
+    if (!e.target.closest('[data-ir-macro]')) return;
+    try { $('tb-macro').scrollIntoView({ block: 'start' }); } catch (e2) { }
+    $('mc-hora').focus({ preventScroll: true });
+  });
+
   $('tb-ab-lista').addEventListener('click', function (e) {
     var b = e.target.closest('[data-ab]'); if (!b) return;
     var id = b.getAttribute('data-ab');
@@ -2657,6 +2947,16 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   });
   $('diarioStats').addEventListener('change', function (e) { if (e.target.id === 'verPor') { S.ui.verPor = e.target.value; renderDiario(); } });
   $('comprobarLista').addEventListener('click', function (e) {
+    var d = e.target.closest('[data-sen-borrar]');
+    if (d) {
+      /* Eliminar pide confirmación: el primer toque pregunta "¿Seguro?", el segundo borra. */
+      var sid = d.getAttribute('data-sen-borrar'), msg = $('chkMsg');
+      if (S.ui.senBorrar !== sid) { S.ui.senBorrar = sid; renderComprobar(); enfocar('#comprobarLista [data-sen-borrar="' + sid + '"]'); return; }
+      S.ui.senBorrar = null; d.disabled = true;
+      borrarSenal(sid).then(function () { msg.className = 'hint ok'; msg.textContent = 'Señal eliminada. Las operaciones del diario no cambian.'; }, function (e2) { msg.className = 'hint err'; msg.textContent = mensajeError(e2); })
+        .then(function () { renderComprobar(); });
+      return;
+    }
     var b = e.target.closest('[data-chk]'); if (!b) return;
     S.ui.chkTarget = b.getAttribute('data-chk'); $('chk-file').value = ''; $('chk-file').click();
   });
@@ -2716,6 +3016,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
         }, function () { });
       };
       lista(SENALES, 500, 'senales'); lista(RESUMENES, 7, 'resumenes'); lista(REVISIONES, 10, 'revisiones');
+      escucharEventos(db);
       CFGDOC.onSnapshot(function (snap) { S.cfg = normCfg(snap.exists ? snap.data() : null); renderAll(); }, function () { });
     }, function () { modoLocal('No se pudo conectar el guardado. La calculadora funciona, pero nada se guarda.'); capacidadesListas(); });
   }
@@ -2725,7 +3026,9 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     validarGestion: validarGestion, normalizarGestion: normalizarGestion, promptGestion: promptGestion, guiaCapturas: guiaCapturas,
     ventanaSesion: ventanaSesion, VENTANAS: VENTANAS, semaforoDe: semaforoDe, proximaAccion: proximaAccion, estadoStop: estadoStop, filaAbierta: filaAbierta, precioReciente: precioReciente,
     resultadoFlotante: resultadoFlotante, curvaResultados: curvaResultados, trazoCurva: trazoCurva, temaAtributo: temaAtributo, temaValido: temaValido, PRECIO_VIGENTE_MIN: PRECIO_VIGENTE_MIN,
-    segmentosVentana: segmentosVentana, resultadoHtml: resultadoHtml, moneyS: moneyS, rfmt: rfmt };
+    segmentosVentana: segmentosVentana, resultadoHtml: resultadoHtml, moneyS: moneyS, rfmt: rfmt,
+    proximidadMacro: proximidadMacro, textoMacro: textoMacro, instanteBolivia: instanteBolivia, nuevoEvento: nuevoEvento, eventosVisibles: eventosVisibles, avisoFinDeSemana: avisoFinDeSemana,
+    estadoPausa: estadoPausa, avisoMitad: avisoMitad, bloqueosProteccion: bloqueosProteccion, PAUSA_RACHA: PAUSA_RACHA, AVISO_MITAD: AVISO_MITAD, MACRO_MIN: MACRO_MIN };
   aplicarTema(leerTema());
   var tabIni = (location.hash || '').replace('#', '');
   if (TABS.indexOf(tabIni) < 0) { try { tabIni = localStorage.getItem('panel-trading-tab') || 'hoy'; } catch (e) { tabIni = 'hoy'; } }
