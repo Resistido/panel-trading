@@ -68,12 +68,17 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   const tarjetas = (pg) => pg.$$eval('#sen-lista .sen', l => l.map(c => ({ id: c.getAttribute('data-sen'), activo: c.querySelector('.sen-h strong').textContent, t: c.textContent,
     luz: (c.querySelector('.sen-est') || {}).getAttribute ? c.querySelector('.sen-est').getAttribute('data-luz') : null })));
   const card = (a) => '#sen-lista .sen:has(.sen-h strong:text-is("' + a + '"))';
+  // El mensaje aparece al terminar de guardar; las tarjetas se re-dibujan cuando la base avisa del cambio (un instante después): esperarlas en pantalla.
+  const hayTarjeta = (pg, activo, si = true) => pg.waitForFunction(([a, s]) => [...document.querySelectorAll('#sen-lista .sen-h strong')].some(e => e.textContent === a) === s, [activo, si]);
+  const nTarjetas = (pg, n) => pg.waitForFunction((k) => document.querySelectorAll('#sen-lista .sen').length === k, n);
   const leer = async (pg, texto, fuente) => {
     await pg.click('#t-operar');
     if (fuente) await pg.selectOption('#sen-fuente', fuente);
     await pg.fill('#f-pegar', texto);
     await pg.click('#btnPegar');
     await pg.waitForFunction(() => !document.getElementById('btnPegar').disabled && document.getElementById('sen-msg').textContent);
+    // Las nuevas llegan con el aviso de la base: esperar a que estén todas las que dice el mensaje.
+    await pg.waitForFunction(() => { const m = document.getElementById('sen-msg').textContent.match(/Agregué (\d+)/), f = document.getElementById('sen-f-nuevas-l').textContent.match(/(\d+)$/); return !m || (f && +f[1] >= +m[1]); });
     await pg.waitForTimeout(120);
   };
   // Copiar el estado para ChatGPT: sin portapapeles, el texto queda a la vista en el cuadro.
@@ -358,6 +363,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await leer(pg, TRES);
     await pg.click(card('NVDA') + ' [data-sen-prac]');
     await pg.waitForFunction(() => /Practicando NVDA/.test(document.getElementById('sen-msg').textContent));
+    await hayTarjeta(pg, 'NVDA', false);
     let tr = await guardados(pg, 'trades'), s = await guardados(pg, 'senales');
     const p = tr[0], sNv = s.find(x => x.activo === 'NVDA');
     ok('Practicar: crea la operación con practica: true y las unidades calculadas', tr.length === 1 && p.practica === true && p.unidades === 18 && p.estado === 'abierta' && p.precioVerificado === null && p.fuente === 'ChatGPT' && p.senalId === sNv._id, p);
@@ -369,6 +375,8 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await pg.click('label[for="sen-f-nuevas"]');
     await pg.click(card('MU') + ' [data-sen-prac]');
     await pg.waitForFunction(() => /Practicando MU/.test(document.getElementById('sen-msg').textContent));
+    await hayTarjeta(pg, 'MU', false);
+    await pg.waitForFunction(() => document.querySelectorAll('#listaAbiertas .pos').length === 2);
     // Nada de lo real cambia
     await pg.click('#t-hoy');
     ok('práctica fuera de los presupuestos de Hoy (pantalla)', (await txt(pg, '#meters')) === antes.meters && /\$0,00 \/ \$54,00/.test(await txt(pg, '#meters')), await txt(pg, '#meters'));
@@ -479,6 +487,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     const [fc] = await Promise.all([pg.waitForEvent('filechooser'), pg.click('#btnSenCaptura')]);
     await fc.setFiles({ name: 'mensaje.png', mimeType: 'image/png', buffer: png });
     await pg.waitForFunction(() => /Agregué 2 señales/.test(document.getElementById('sen-msg').textContent), null, { timeout: 5000 });
+    await nTarjetas(pg, 2);
     const llamada = await pg.evaluate(() => window.__sampleCalls.filter(c => c.captura).pop());
     ok('captura: una llamada a SAMPLE.json con la imagen y el pedido de transcribir', llamada && llamada.imagenes === 1 && /TRANSCRIPCIÓN DE SEÑALES/.test(llamada.input) && /null/.test(llamada.input), llamada && { img: llamada.imagenes, tier: llamada.tier });
     const s = await guardados(pg, 'senales'), nv = s.find(x => x.activo === 'NVDA');
@@ -534,6 +543,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     ok('Buscar: el análisis se guarda como señal con fuente "Claude"', an && an.fuente === 'Claude' && an.estado === 'vista', an && an.fuente);
     ok('Buscar: el botón dice "Cargar en la calculadora"', (await txt(pg, '#btnCargarAnalisis')) === 'Cargar en la calculadora', null);
     await pg.click('#t-operar');
+    await hayTarjeta(pg, 'NVDA');
     ok('Buscar → Señales: el análisis aparece en Nuevas como "Claude · Buscar"', (await tarjetas(pg)).some(x => x.activo === 'NVDA' && /Claude · Buscar/.test(x.t)), (await tarjetas(pg)).map(x => x.t.slice(0, 60)));
     await pg.click(card('NVDA') + ' [data-sen-prac]');
     await pg.waitForFunction(() => /Practicando NVDA/.test(document.getElementById('sen-msg').textContent));
@@ -553,6 +563,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     ok('local: Subir captura deshabilitado y explica por qué', await pg.isDisabled('#btnSenCaptura') && await pg.isVisible('#sen-cap-no') && /dentro de Claude/.test(await txt(pg, '#sen-cap-no')), null);
     await pg.click(card('NVDA') + ' [data-sen-prac]');
     await pg.waitForFunction(() => /Practicando NVDA/.test(document.getElementById('sen-msg').textContent));
+    await hayTarjeta(pg, 'NVDA', false);
     await pg.click('#t-hoy');
     ok('local: la práctica no toca el presupuesto', /\$0,00 \/ \$54,00/.test(await txt(pg, '#meters')) && /0 \/ 6/.test(await txt(pg, '#meters')), await txt(pg, '#meters'));
     await pg.click('#t-abiertas');
