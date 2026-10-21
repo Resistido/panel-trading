@@ -233,7 +233,7 @@ const TABS = ['hoy', 'analizar', 'operar', 'abiertas', 'diario'];
   await r2.pg.waitForFunction(() => document.getElementById('verdict').getAttribute('data-luz') === 'rojo');
   ok('agotado: semáforo rojo con palabra "No operes" e icono', /No operes/.test(await txt(r2.pg, '#v-estado')) && !!(await r2.pg.$('#v-estado svg')) && /Día cerrado/.test(await txt(r2.pg, '#v-title')), await txt(r2.pg, '#verdict'));
   ok('agotado: el diario dice "agotado" y la barra llena', await r2.pg.evaluate(() => { const m = document.querySelector('#meters .meter'); return m.getAttribute('data-luz') === 'rojo' && /agotado/.test(m.textContent) && parseFloat(m.querySelector('.bar i').style.width) === 100; }), await txt(r2.pg, '#meters'));
-  ok('agotado: próximo paso sin sugerir entrar', /No abras nada nuevo hoy/.test(await txt(r2.pg, '#v-next')) && !/Ir a Operar/.test(await txt(r2.pg, '#v-next')), await txt(r2.pg, '#v-next'));
+  ok('agotado: próximo paso sin sugerir entrar', /No abras nada nuevo hoy/.test(await txt(r2.pg, '#v-next')) && !/Ir a (Operar|Señales)/.test(await txt(r2.pg, '#v-next')), await txt(r2.pg, '#v-next'));
   ok('agotado: pocos datos con 2 cerradas', /Todavía pocos datos/.test(await txt(r2.pg, '#tb-sem')) && /llevás 2/.test(await txt(r2.pg, '#tb-sem')) && /−2,0 R/.test(await txt(r2.pg, '#tb-sem')), await txt(r2.pg, '#tb-sem'));
   ok('agotado: chip de cabecera con icono', !!(await r2.pg.$('#mini-ico svg')) && /Día cerrado/.test(await txt(r2.pg, '#mini-txt')), null);
   await r2.ctx.close();

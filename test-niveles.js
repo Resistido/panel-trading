@@ -8,6 +8,7 @@ const archivo = process.argv[3] || 'panel-trading.html';
 const html = fs.readFileSync(path.join(dir, archivo), 'utf8');
 const suite = fs.readFileSync(path.join(__dirname, 'test-panel.js'), 'utf8');
 const MOCK = suite.slice(suite.indexOf('const MOCK = `') + 'const MOCK = `'.length, suite.indexOf('})();`;') + '})();'.length);
+const { AHORA } = require('./datos-tablero.js');
 const skeleton = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>' + html + '</body></html>';
 fs.writeFileSync(path.join(dir, 'test-niveles-page.html'), skeleton);
 
@@ -22,6 +23,8 @@ const reg = (nivel, riesgo = '27') => 'REGISTRO: 14/10/2026 | NVDA | compra | 18
   await ctx.addInitScript(MOCK);
   const pg = await ctx.newPage();
   pg.on('pageerror', e => errors.push('pageerror: ' + e.message));
+  // Reloj fijo con Wall Street abierto (miércoles 14-oct-2026, 11:05 NY): desde v3.6 la señal se carga desde su tarjeta, y con el mercado cerrado Operar queda deshabilitado.
+  await pg.clock.install({ time: AHORA });
   await pg.goto('file://' + path.join(dir, 'test-niveles-page.html'));
   await pg.waitForFunction(() => document.getElementById('v-title').textContent !== 'Cargando tus operaciones…', null, { timeout: 15000 });
 
@@ -45,11 +48,19 @@ const reg = (nivel, riesgo = '27') => 'REGISTRO: 14/10/2026 | NVDA | compra | 18
     ok('nivel desconocido «' + txt + '» → el más bajo y avisa', o && o.nivelIdx === 0 && o.nivelDudoso === true, o && { idx: o.nivelIdx, dudoso: o.nivelDudoso });
   }
 
-  // 2) Flujo real en pantalla: pegar señal y revisar el nivel elegido y el mensaje
+  // 2) Flujo real en pantalla: pegar la señal, tocar Operar en su tarjeta (v3.6) y revisar el nivel elegido y el mensaje de la calculadora
+  // Cada caso empieza con la bandeja vacía: la regla de no duplicar (mismo día, activo, dirección, entrada y SL1) frenaría la misma señal pegada otra vez.
+  const vaciarBandeja = async () => {
+    await pg.evaluate(async () => { const db = await window.claude.use('db'); for (const k of [...window.__mockStore.keys()].filter(k => k.startsWith('senales/'))) await db.collection('senales').doc(k.split('/')[1]).delete(); });
+    await pg.waitForFunction(() => !document.querySelector('#sen-lista .sen'));
+  };
   const pegar = async (texto) => {
     await pg.click('[data-tab="operar"]');
+    await vaciarBandeja();
     await pg.fill('#f-pegar', texto);
     await pg.click('#btnPegar');
+    await pg.waitForSelector('#sen-lista [data-sen-op]:not([disabled])');
+    await pg.click('#sen-lista [data-sen-op]');
     await pg.waitForTimeout(150);
     return pg.evaluate(() => ({ sel: (document.querySelector('input[name="f-nivel"]:checked') || {}).value, msg: document.getElementById('pegarMsg').textContent, cls: document.getElementById('pegarMsg').className }));
   };
@@ -66,14 +77,15 @@ const reg = (nivel, riesgo = '27') => 'REGISTRO: 14/10/2026 | NVDA | compra | 18
   r = await pegar(reg('Moderado', '18') + '\nAPUESTA DE EVENTO');
   ok('pantalla: apuesta de evento sigue forzando $10', r.sel === '0', r);
 
-  // 3) Varias señales pegadas juntas: cada botón muestra su nivel
+  // 3) Varias señales pegadas juntas: cada tarjeta de la bandeja muestra su nivel (antes, un botón por señal)
   await pg.click('[data-tab="operar"]');
+  await vaciarBandeja();
   await pg.fill('#f-pegar', 'PRE-APERTURA\n' + reg('Cauteloso', '10') + '\n\n' + reg('Alta convicción', '36').replace('NVDA', 'AMD'));
   await pg.click('#btnPegar');
-  await pg.waitForTimeout(150);
-  const botones = await pg.evaluate(() => [...document.querySelectorAll('#pegarOpciones [data-op]')].map(b => b.textContent));
+  await pg.waitForFunction(() => document.querySelectorAll('#sen-lista .sen').length === 2);
+  const botones = await pg.evaluate(() => [...document.querySelectorAll('#sen-lista .sen')].map(b => b.textContent));
   ok('varias señales: cada opción muestra su nivel', botones.length === 2 && /NVDA.*\$10/.test(botones[0]) && /AMD.*\$36/.test(botones[1]), botones);
-  await pg.click('#pegarOpciones [data-op="1"]');
+  await pg.click('#sen-lista .sen:nth-child(2) [data-sen-op]');
   await pg.waitForTimeout(150);
   const sel2 = await pg.evaluate(() => (document.querySelector('input[name="f-nivel"]:checked') || {}).value);
   ok('varias señales: elegir la segunda marca $36', sel2 === '3', sel2);
