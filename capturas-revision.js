@@ -1,4 +1,5 @@
 // Capturas para revisión visual: las cinco pestañas en claro y oscuro a 390 px, Capturas en modo "Ya estoy dentro" con su bloque de acción, y Hoy a 1280 px.
+// Protecciones (v3.5), en claro y oscuro a 390 px: Hoy con un dato macro cerca, con pausa activa y con aviso de fin de semana, y Operar bloqueada.
 // Uso: node capturas-revision.js <carpeta> [archivo]. Guarda los PNG en <carpeta>/revision-visual/.
 // Usa el simulador de test-panel.js, un reloj fijo (miércoles 14-oct-2026, 11:05 en Nueva York) y datos inventados.
 const { chromium } = require('playwright');
@@ -9,7 +10,12 @@ const archivo = process.argv[3] || 'panel-trading.html';
 const html = fs.readFileSync(path.join(dir, archivo), 'utf8');
 const suite = fs.readFileSync(path.join(__dirname, 'test-panel.js'), 'utf8');
 const MOCK = suite.slice(suite.indexOf('const MOCK = `') + 'const MOCK = `'.length, suite.indexOf('})();`;') + '})();'.length);
-const { datosSemana, AHORA } = require('./datos-tablero.js');
+const { datosSemana, AHORA, NY } = require('./datos-tablero.js');
+const BO = (m, d, h, mi) => Date.UTC(2026, m - 1, d, h + 4, mi); // Bolivia: UTC−4 todo el año
+// Una pérdida chica cerrada hoy a las 10:50: con la de MU (10:15) son dos seguidas → pausa hasta las 11:20.
+const perdida = ['t-pausa', { activo: 'AMD', dir: 'compra', entrada: 160, entradaPlan: 160, sl1: 159, sl2: 160, tp1: 162, tp2: 164, nivel: 10, nivelEf: 10, d: 1, unidades: 8, unidadesAbiertas: 0, riesgoInicial: 8, stopActual: 159,
+  estado: 'cerrada', ts: BO(10, 14, 10, 30), parciales: [], movimientos: [], reglasRotas: [], nota: '', origen: 'Radar', tipo: 'limite', tipoActivo: 'Tecnología', seguridad: null,
+  cierre: { ts: BO(10, 14, 10, 50), precio: 159, unidades: 8, pnl: -8, motivo: 'SL1' }, pnl: -8, r: -1, plan: 'si' }];
 const skeleton = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}[hidden]{display:none!important}</style></head><body>' + html + '</body></html>';
 const pagina = path.join(dir, 'test-capturas-page.html');
 fs.writeFileSync(pagina, skeleton);
@@ -19,15 +25,15 @@ fs.mkdirSync(salida, { recursive: true });
 (async () => {
   const browser = await chromium.launch();
   const errores = [];
-  const preparar = async (ancho) => {
+  const preparar = async (ancho, { hora = AHORA, trades = [], eventos = [['e-fed', { ts: BO(10, 14, 14, 0), nombre: 'Fed (actas)' }]] } = {}) => {
     const ctx = await browser.newContext({ viewport: { width: ancho, height: 860 }, deviceScaleFactor: 2 });
     await ctx.addInitScript(MOCK);
     const pg = await ctx.newPage();
     pg.on('pageerror', e => errores.push(e.message));
-    await pg.clock.install({ time: AHORA });
+    await pg.clock.install({ time: hora });
     await pg.goto('file://' + pagina);
     await pg.waitForFunction(() => document.getElementById('v-title').textContent !== 'Cargando tus operaciones…', null, { timeout: 15000 });
-    await pg.evaluate(async (docs) => { const db = await window.claude.use('db'); for (const [id, d] of docs) await db.collection('trades').doc(id).set(d); }, datosSemana());
+    await pg.evaluate(async ([docs, evs]) => { const db = await window.claude.use('db'); for (const [id, d] of docs) await db.collection('trades').doc(id).set(d); for (const [id, d] of evs) await db.collection('eventos').doc(id).set(d); }, [datosSemana().concat(trades), eventos]);
     await pg.waitForFunction(() => document.querySelectorAll('#tb-ab-lista .ab-fila').length === 2);
     await pg.waitForTimeout(500); // que el simulador termine de re-dibujar antes de escribir
     // Precio escrito en Abiertas para una de las dos posiciones (la otra queda sin precio vigente).
@@ -77,6 +83,25 @@ fs.mkdirSync(salida, { recursive: true });
     await completa(pg, 390, path.join(salida, '390-' + t + '-capturas-dentro.png'));
   }
   await ctx.close();
+  // Protecciones: Hoy con un dato macro cerca, con pausa y con aviso de fin de semana; Operar bloqueada por el dato macro.
+  const casos = [
+    ['hoy-macro', { eventos: [['e-cpi', { ts: BO(10, 14, 11, 20), nombre: 'CPI' }], ['e-fed', { ts: BO(10, 14, 14, 0), nombre: 'Fed (actas)' }]] }, 'hoy'],
+    ['hoy-pausa', { trades: [perdida] }, 'hoy'],
+    ['hoy-finde', { hora: NY(10, 16, 11, 5) }, 'hoy'],
+    ['operar-bloqueada', { eventos: [['e-cpi', { ts: BO(10, 14, 11, 20), nombre: 'CPI' }]] }, 'operar']
+  ];
+  for (const [nombre, opciones, tab] of casos) {
+    const c = await preparar(390, opciones);
+    if (tab === 'operar') {
+      await c.pg.click('#t-operar'); await c.pg.click('#btnEjemplo');
+      await c.pg.check('#chk-horario'); await c.pg.check('#chk-stop');
+    }
+    for (const t of ['claro', 'oscuro']) {
+      await tema(c.pg, t);
+      await completa(c.pg, 390, path.join(salida, '390-' + t + '-' + nombre + '.png'));
+    }
+    await c.ctx.close();
+  }
   const g = await preparar(1280);
   for (const t of ['claro', 'oscuro']) {
     await tema(g.pg, t);
