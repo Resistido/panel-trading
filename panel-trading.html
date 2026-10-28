@@ -257,6 +257,43 @@ td.n,th.n{text-align:right;font-family:var(--f-data);font-variant-numeric:tabula
 .tr .meta{overflow-wrap:anywhere}
 .tr input{min-height:var(--tap);padding:7px 10px;font-size:.9rem}
 
+/* Diario en tres partes (v3.7): Operaciones, Estadísticas y Revisión. Cada término técnico lleva su explicación en una línea (.exp). */
+.d-parte{display:grid;gap:14px;min-width:0;grid-template-columns:minmax(0,1fr)}
+.d-parte[hidden]{display:none}
+/* El selector de partes es navegación (como la pestaña activa de abajo): la parte elegida va en rojo de marca; Real | Práctica y el período son filtros. */
+.seg.partes label{font-size:.9rem;letter-spacing:.02em}
+.seg.partes input:checked+label{background:var(--brand-fill);border-color:var(--brand-fill);color:var(--brand-ink)}
+.stats.dos{grid-template-columns:repeat(2,minmax(0,1fr))}
+.stat b.txt{font-family:var(--f-body);font-size:1rem;line-height:1.25}
+.stat .exp{font-family:var(--f-body);font-size:.76rem;line-height:1.35;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+.est{display:grid;gap:14px;min-width:0;grid-template-columns:minmax(0,1fr)}
+.est-sec{display:grid;gap:8px;min-width:0}
+tr.sub td:first-child{padding-left:22px;color:var(--muted)}
+.vent{list-style:none;margin:0;padding:12px;display:grid;gap:12px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface)}
+.vent li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;align-items:center;min-width:0}
+.vent-n{display:flex;gap:6px;align-items:baseline;font-weight:700;font-size:.9rem;min-width:0}
+.vent-n .ico{align-self:center}
+.vent-n small{font-weight:500;font-size:.76rem;color:var(--muted);font-family:var(--f-data);margin-left:6px}
+.vent-bar{grid-column:1 / -1;position:relative;height:14px;border-radius:var(--r-xs);background:var(--bar-track);min-width:0}
+.vent-bar::before{content:"";position:absolute;left:calc(50% - 1px);top:-4px;bottom:-4px;width:2px;background:var(--line-strong)}
+.vent-bar i{position:absolute;top:0;bottom:0}
+.vent-bar i[data-lado="pos"]{left:50%;background:var(--gain);border-radius:0 var(--r-xs) var(--r-xs) 0}
+.vent-bar i[data-lado="neg"]{right:50%;background:var(--loss);border-radius:var(--r-xs) 0 0 var(--r-xs)}
+.vent-v{font-family:var(--f-data);font-weight:700;font-size:.86rem;text-align:right;white-space:nowrap}
+.rev-lista{display:grid;gap:12px;min-width:0}
+.rev-lista[hidden]{display:none}
+.rev-sem{display:grid;gap:8px;min-width:0}
+.rev-sem h4{margin:0;font-family:var(--f-display);font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+details.rev{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface);padding:0 12px;min-width:0}
+details.rev>summary{cursor:pointer;min-height:var(--tap);display:flex;gap:10px;align-items:center;font-weight:700;padding:6px 0;list-style:none}
+details.rev>summary::-webkit-details-marker{display:none}
+/* Flecha que dice que se despliega (el summary en flex pierde el triángulo del navegador); gira al abrir. */
+details.rev>summary::after{content:"";flex:none;width:8px;height:8px;margin:0 4px 4px auto;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg)}
+details.rev[open]>summary::after{transform:rotate(-135deg);margin-bottom:-4px}
+.rev-t{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;min-width:0}
+details.rev>summary small{font-weight:500;color:var(--muted);font-size:.78rem;font-family:var(--f-data)}
+details.rev[open]{padding-bottom:12px}
+details.rev[open]>summary{border-bottom:1px solid var(--line);margin-bottom:10px}
 details#ajustes{border-top:1px solid var(--line);padding-top:12px}
 details#ajustes[open]{display:grid;gap:12px}
 .rules{margin:0;padding-left:18px;display:grid;gap:4px;font-size:.9rem}
@@ -750,6 +787,11 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     <!-- DIARIO -->
     <section data-panel="diario" id="p-diario" role="tabpanel" aria-labelledby="h-di" hidden>
       <h2 id="h-di">Diario</h2>
+      <div class="seg partes" role="radiogroup" aria-label="Parte del diario">
+        <input type="radio" name="d-parte" id="d-p-ops" value="operaciones" checked><label for="d-p-ops">Operaciones</label>
+        <input type="radio" name="d-parte" id="d-p-est" value="estadisticas"><label for="d-p-est">Estadísticas</label>
+        <input type="radio" name="d-parte" id="d-p-rev" value="revision"><label for="d-p-rev">Revisión</label>
+      </div>
       <div class="seg" role="radiogroup" aria-label="Operaciones reales o de práctica">
         <input type="radio" name="d-modo" id="d-real" value="real" checked><label for="d-real">Real</label>
         <input type="radio" name="d-modo" id="d-prac" value="practica"><label for="d-prac">Práctica</label>
@@ -759,12 +801,9 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
         <input type="radio" name="d-per" id="d-mes" value="mes"><label for="d-mes">Este mes</label>
         <input type="radio" name="d-per" id="d-todo" value="todo"><label for="d-todo">Todo</label>
       </div>
+      <!-- Operaciones: la lista, el CSV, el respaldo, Comprobar señales y Reglas y ajustes -->
+      <div class="d-parte" id="d-operaciones">
       <div id="diarioStats" class="tables"></div>
-      <div class="card" id="revisionBox">
-        <div class="row between"><h3>Revisión con Claude</h3><button type="button" class="small" id="btnRevision">Pedir revisión</button></div>
-        <p class="meta-line" id="revisionFecha"></p>
-        <div class="prose" id="revisionTxt"><p class="hint">Claude lee tu diario del período elegido y te dice qué funciona, qué no y un cambio concreto para la próxima semana.</p></div>
-      </div>
       <div class="card" id="comprobarBox">
         <h3>Comprobar señales</h3>
         <p class="hint">Para saber si las señales sirven, aunque no las hayas operado: subí una captura de 5 o 15 minutos de lo que pasó después, y Claude dice qué tocó primero, el TP o el stop.</p>
@@ -807,11 +846,29 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
         </div>
         <p class="hint" id="cfgMsg" role="status"></p>
       </details>
+      </div>
+
+      <!-- Estadísticas: las cuentas salen de estadisticas, quienAcierta y porVentana (funciones puras) -->
+      <div class="d-parte" id="d-estadisticas" hidden>
+        <div id="estStats" class="est"></div>
+        <details class="more" id="estDetalle" hidden><summary>Más detalle</summary><div id="estTablas" class="tables"></div></details>
+      </div>
+
+      <!-- Revisión: la revisión con Claude del período elegido y las anteriores, por semana -->
+      <div class="d-parte" id="d-revision" hidden>
+        <div class="nota-p" id="rev-prac" hidden><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l9 16H3z"/><path d="M12 10v4.2M12 17.2v.01"/></svg><span>La revisión con Claude lee solo tus operaciones reales: las de práctica no se mezclan. Elegí <b>Real</b> para pedirla o ver las anteriores.</span></div>
+        <div class="card" id="revisionBox">
+          <div class="row between"><h3>Revisión con Claude</h3><button type="button" class="small" id="btnRevision">Pedir revisión</button></div>
+          <p class="meta-line" id="revisionFecha"></p>
+          <div class="prose" id="revisionTxt"><p class="hint">Claude lee tu diario del período elegido, con tus estadísticas y qué fuente acierta más, y te dice qué funciona, qué no y un cambio concreto para la próxima semana. Cada revisión queda guardada acá abajo, por semana.</p></div>
+        </div>
+        <div id="revAnteriores" class="rev-lista"></div>
+      </div>
     </section>
   </main>
 
   <footer>
-    <p class="pie-marca"><span aria-hidden="true">/</span>Centinela · v3.6</p>
+    <p class="pie-marca"><span aria-hidden="true">/</span>Centinela · v3.7</p>
     <p>Centinela calcula con tus reglas, pero no ve tu cuenta de Quantfury. Antes de entrar, mirá siempre el precio allí.</p>
     <p>El nivel de seguridad mide qué tan bien cumple el setup tus criterios; no es la probabilidad de ganar. Un gap o un deslizamiento puede ejecutar el stop peor de lo previsto.</p>
   </footer>
@@ -843,7 +900,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   var TABS = ['hoy', 'analizar', 'operar', 'abiertas', 'diario'];
   var S = { cfg: clone(DEF), trades: [], senales: [], resumenes: [], revisiones: [], eventos: [], eventosError: false, loaded: false, local: false, owner: null, downloads: null, est: null, mkt: null, capListo: false,
     ui: { panel: null, per: 'semana', confirmYa: false, cfgDirty: false, confirmReset: false, err: {}, motivo: {}, plan: {}, senalId: null, seguridad: null, fuente: null,
-      senFiltro: 'nuevas', senDescartar: null, senBusy: {}, senLeyendo: false, diarioModo: 'real',
+      senFiltro: 'nuevas', senDescartar: null, senBusy: {}, senLeyendo: false, diarioModo: 'real', diarioParte: 'operaciones', revAbiertas: {},
       tab: 'hoy', tipoAuto: true, verPor: 'nivel', analisis: null, analisisId: null, analizando: false, chkTarget: null, chkBusy: {}, revisando: false, thumbUrls: [],
       modoCap: 'entrada', analizandoQue: 'entrada', gePos: null, gestion: null, precios: {}, tema: 'auto', quitarEvento: null, senBorrar: null } };
   var TRADES = null, CFGDOC = null, SENALES = null, RESUMENES = null, REVISIONES = null, EVENTOS = null, SAMPLE = null, LIMITES = null, ARCHIVOS = [], CTL = null;
@@ -2158,6 +2215,8 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
       .sort(function (a, b) { return Number(b.cierre.ts) - Number(a.cierre.ts); });
   }
   function bandaSeg(p) { return p == null ? 'Sin análisis de capturas' : p >= 80 ? '80–100 muy sólido' : p >= 65 ? '65–79 con matices' : p >= 50 ? '50–64 falta convicción' : '0–49 no cumple'; }
+  /* Orden de las filas de fuente y de ventana: el de FUENTES (y "Sin dato" al final) y el de la barra de Hoy. */
+  var NIVELES_VENTANA = ['buena', 'regular', 'mala'];
   var VER_POR = {
     nivel: { titulo: 'Nivel de riesgo', clave: function (t) { var i = S.cfg.niveles.indexOf(t.nivel); return moneyN(t.nivel) + (i >= 0 ? ' ' + NIVEL_TXT[i].toLowerCase() : ''); }, orden: function (t) { return t.nivel; } },
     seguridad: { titulo: 'Seguridad del setup', clave: function (t) { return bandaSeg(t.seguridad); }, orden: function (t) { return t.seguridad == null ? -1 : -t.seguridad; } },
@@ -2165,30 +2224,107 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     tipo: { titulo: 'Tipo de acción', clave: function (t) { return t.tipoActivo || 'Sin tipo'; } },
     origen: { titulo: 'Señal', clave: function (t) { return t.origen || 'Sin origen'; } },
     dia: { titulo: 'Día de la semana', clave: function (t) { return DIAS[diaSemana(claveDia(t.ts))]; }, orden: function (t) { return (diaSemana(claveDia(t.ts)) + 6) % 7; } },
-    dir: { titulo: 'Dirección', clave: function (t) { return t.dir === 'venta' ? 'Venta corta' : 'Compra'; } }
+    dir: { titulo: 'Dirección', clave: function (t) { return t.dir === 'venta' ? 'Venta corta' : 'Compra'; } },
+    fuente: { titulo: 'Fuente', clave: function (t) { return fuenteTxt(t); }, orden: function (t) { var i = FUENTES.indexOf(fuenteTxt(t)); return i < 0 ? FUENTES.length : i; } },
+    ventana: { titulo: 'Ventana de sesión', clave: function (t) { var n = nivelVentanaDe(t); return n ? NIVEL_VENTANA[n].txt : 'Sin hora'; }, orden: function (t) { var i = NIVELES_VENTANA.indexOf(nivelVentanaDe(t)); return i < 0 ? NIVELES_VENTANA.length : i; } }
   };
+  /* La ventana de sesión en la que entró (BUENA, REGULAR o MALA, como la barra de Hoy). Sin hora de entrada válida: null (no se inventa). */
+  function nivelVentanaDe(t) { return t && isNum(Number(t.ts)) && Number(t.ts) > 0 ? ventanaSesion(Number(t.ts)).nivel : null; }
+  /* Ganada, perdida o en cero según el resultado en dólares (con medio centavo de tolerancia por redondeo). */
+  function signoResultado(t) { var pnl = isNum(t.pnl) ? t.pnl : 0; return pnl > 0.004 ? 1 : pnl < -0.004 ? -1 : 0; }
   function agrupar(lista, def) {
     var m = {}, ord = {};
     lista.forEach(function (t) {
-      var k = def.clave(t), r = isNum(t.r) ? t.r : 0, pnl = isNum(t.pnl) ? t.pnl : 0;
-      if (!m[k]) { m[k] = { n: 0, gan: 0, r: 0, pnl: 0 }; ord[k] = def.orden ? def.orden(t) : k; }
-      m[k].n++; m[k].r += r; m[k].pnl += pnl; if (pnl > 0.004) m[k].gan++;
+      var k = def.clave(t), r = isNum(t.r) ? t.r : 0, pnl = isNum(t.pnl) ? t.pnl : 0, s = signoResultado(t);
+      if (!m[k]) { m[k] = { n: 0, gan: 0, perd: 0, emp: 0, r: 0, pnl: 0 }; ord[k] = def.orden ? def.orden(t) : k; }
+      m[k].n++; m[k].r += r; m[k].pnl += pnl;
+      if (s > 0) m[k].gan++; else if (s < 0) m[k].perd++; else m[k].emp++;
     });
     return Object.keys(m).sort(function (a, b) { return ord[a] < ord[b] ? -1 : ord[a] > ord[b] ? 1 : 0; }).map(function (k) { return [k, m[k]]; });
   }
+  /* Las cerradas de la más vieja a la más nueva (por la hora de cierre; a igual cierre, por la de entrada). No cambia la lista que recibe. */
+  function enOrdenDeCierre(lista) {
+    return (lista || []).slice().sort(function (a, b) { return (Number(a.cierre && a.cierre.ts) - Number(b.cierre && b.cierre.ts)) || (Number(a.ts) - Number(b.ts)); });
+  }
+  /* Números del Diario para una lista de operaciones cerradas (todas reales o todas de práctica: quien llama elige).
+     gan/perd/emp: ganadas, perdidas y en cero (las de cero van aparte). factor: lo ganado / lo perdido en dólares; null si no hubo pérdidas.
+     caida: el peor tramo desde un máximo del R acumulado, en orden de cierre (r es lo que bajó, en positivo; desde y hasta, el R acumulado).
+     racha: actual { tipo: 'ganadas' | 'perdidas', n } o null, y la mejor (más ganadas seguidas) y la peor (más perdidas seguidas). Una en cero no suma ni corta.
+     fueraPlan: las que rompieron una regla o fueron fuera del plan (cada una una vez), lo que sumaron y el promedio de las demás (null si no queda ninguna). */
   function estadisticas(lista) {
-    var st = { n: lista.length, gan: 0, perd: 0, emp: 0, pnl: 0, rSum: 0, mejor: null, peor: null, rotasN: 0, rotasR: 0, fueraN: 0, fueraR: 0 };
+    var st = { n: lista.length, gan: 0, perd: 0, emp: 0, pnl: 0, rSum: 0, mejor: null, peor: null, rotasN: 0, rotasR: 0, fueraN: 0, fueraR: 0, ganado: 0, perdido: 0 };
+    var fp = { n: 0, r: 0, pnl: 0 };
     lista.forEach(function (t) {
-      var r = isNum(t.r) ? t.r : 0, pnl = isNum(t.pnl) ? t.pnl : 0;
-      if (pnl > 0.004) st.gan++; else if (pnl < -0.004) st.perd++; else st.emp++;
+      var r = isNum(t.r) ? t.r : 0, pnl = isNum(t.pnl) ? t.pnl : 0, s = signoResultado(t), rotas = (t.reglasRotas || []).length > 0;
+      if (s > 0) { st.gan++; st.ganado += pnl; } else if (s < 0) { st.perd++; st.perdido += -pnl; } else st.emp++;
       st.pnl += pnl; st.rSum += r;
       if (st.mejor === null || r > st.mejor) st.mejor = r;
       if (st.peor === null || r < st.peor) st.peor = r;
-      if (t.reglasRotas.length) { st.rotasN++; st.rotasR += r; }
+      if (rotas) { st.rotasN++; st.rotasR += r; }
       if (t.plan === 'no') { st.fueraN++; st.fueraR += r; }
+      if (rotas || t.plan === 'no') { fp.n++; fp.r += r; fp.pnl += pnl; }
     });
     st.rAvg = st.n ? st.rSum / st.n : 0;
+    st.factor = st.perdido > 0.004 ? st.ganado / st.perdido : null;
+    var acum = 0, pico = 0, caida = { r: 0, desde: 0, hasta: 0 }, cur = { s: 0, n: 0 }, mejor = 0, peor = 0;
+    enOrdenDeCierre(lista).forEach(function (t) {
+      acum += isNum(t.r) ? t.r : 0;
+      if (acum > pico) pico = acum;
+      if (pico - acum > caida.r + 1e-9) caida = { r: pico - acum, desde: pico, hasta: acum };
+      var s = signoResultado(t);
+      if (!s) return;
+      cur = cur.s === s ? { s: s, n: cur.n + 1 } : { s: s, n: 1 };
+      if (s > 0) mejor = Math.max(mejor, cur.n); else peor = Math.max(peor, cur.n);
+    });
+    st.caida = { r: round4(caida.r), desde: round4(caida.desde), hasta: round4(caida.hasta) };
+    st.racha = { actual: cur.n ? { tipo: cur.s > 0 ? 'ganadas' : 'perdidas', n: cur.n } : null, mejor: mejor, peor: peor };
+    fp.nSin = st.n - fp.n; fp.promSin = fp.nSin ? (st.rSum - fp.r) / fp.nSin : null;
+    st.fueraPlan = fp;
     return st;
+  }
+  /* Con menos de MIN_CONCLUSION operaciones cerradas los números son primeras señales, no conclusiones (lo dicen el Diario y la revisión). */
+  var MIN_CONCLUSION = 20;
+  function avisoPocas(n) {
+    if (!(n > 0) || n >= MIN_CONCLUSION) return null;
+    return n + (n === 1 ? ' operación cerrada' : ' operaciones cerradas') + ': son primeras señales, no conclusiones. Hacen falta ' + MIN_CONCLUSION + ' o más.';
+  }
+  function filaDe(clave, x) { return { clave: clave, n: x.n, gan: x.gan, perd: x.perd, emp: x.emp, r: x.r, pnl: x.pnl, rAvg: x.n ? x.r / x.n : null }; }
+  /* "¿Quién acierta más?": por fuente (ChatGPT, Claude, Propia, Otra, Sin dato) y, dentro de ChatGPT, por origen (Pre-apertura, Radar, Overnight…). */
+  function quienAcierta(lista) {
+    var filas = agrupar(lista, VER_POR.fuente).map(function (f) {
+      var fila = filaDe(f[0], f[1]);
+      fila.origenes = f[0] !== 'ChatGPT' ? [] : agrupar(lista.filter(function (t) { return fuenteTxt(t) === 'ChatGPT'; }), VER_POR.origen).map(function (o) { return filaDe(o[0], o[1]); });
+      return fila;
+    });
+    return { filas: filas, pocas: filas.some(function (f) { return f.n < MIN_CONCLUSION; }) };
+  }
+  /* Por ventana de sesión (la de la hora de entrada, con ventanaSesion): siempre las tres filas, en el orden de la barra de Hoy.
+     Una operación sin hora de entrada válida no entra en ninguna fila (en Más detalle aparece como "Sin hora").
+     barra: largo de la barra en % de media barra (la más grande en valor absoluto llega al borde); lado 'pos', 'neg' o null. */
+  function porVentana(lista) {
+    var g = {};
+    agrupar(lista, VER_POR.ventana).forEach(function (f) { g[f[0]] = f[1]; });
+    var filas = NIVELES_VENTANA.map(function (nv) {
+      var txt = NIVEL_VENTANA[nv].txt, x = g[txt] || { n: 0, gan: 0, perd: 0, emp: 0, r: 0, pnl: 0 }, f = filaDe(txt, x);
+      f.nivel = nv; return f;
+    });
+    var max = Math.max.apply(null, filas.map(function (f) { return f.rAvg == null ? 0 : Math.abs(f.rAvg); }));
+    filas.forEach(function (f) {
+      var a = f.rAvg == null ? 0 : f.rAvg;
+      f.lado = a > 0.004 ? 'pos' : a < -0.004 ? 'neg' : null;
+      f.barra = f.lado && max > 0 ? round2(Math.abs(a) / max * 100) : 0;
+    });
+    return filas;
+  }
+  /* Revisiones guardadas agrupadas por semana (lunes, en Bolivia): la semana más nueva arriba y, dentro, la más nueva primero. */
+  function revisionesPorSemana(revs) {
+    var m = {};
+    (revs || []).forEach(function (r) {
+      var ts = Number(r && r.ts); if (!isNum(ts)) return;
+      var sem = r.semana && /^\d{4}-\d{2}-\d{2}$/.test(r.semana) ? r.semana : inicioSemana(claveDia(ts));
+      (m[sem] = m[sem] || []).push(r);
+    });
+    return Object.keys(m).sort().reverse().map(function (k) { return { semana: k, revisiones: m[k].sort(function (a, b) { return Number(b.ts) - Number(a.ts); }) }; });
   }
   function tabla(titulo, filas) {
     if (!filas.length) return '';
@@ -2197,35 +2333,35 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
       '</tbody></table></div>';
   }
   function senalesPeriodo(per) { return S.senales.filter(function (x) { return x.dia && enPeriodo(x.dia, per); }); }
+  /* Diario en tres partes: Operaciones (lista, CSV, respaldo, Comprobar señales, Reglas y ajustes), Estadísticas y Revisión.
+     El período y Real | Práctica valen para las tres. */
+  var PARTES_DIARIO = ['operaciones', 'estadisticas', 'revision'];
+  function cuandoPer(per) { return per === 'semana' ? 'esta semana' : per === 'mes' ? 'este mes' : 'todavía'; }
+  function statHtml(label, val, sub, c, exp) { return '<div class="stat"><span>' + label + '</span><b class="' + (c || '') + '">' + val + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + (exp ? '<p class="exp">' + exp + '</p>' : '') + '</div>'; }
   function renderDiario() {
+    var parte = PARTES_DIARIO.indexOf(S.ui.diarioParte) >= 0 ? S.ui.diarioParte : 'operaciones';
+    PARTES_DIARIO.forEach(function (p) { $('d-' + p).hidden = p !== parte; });
     var box = $('diarioStats'), list = $('diarioLista');
     if (!S.loaded) return;
     var per = S.ui.per, prac = S.ui.diarioModo === 'practica', lista = cerradasPeriodo(per, S.ui.diarioModo);
     $('h-cerradas').textContent = prac ? 'Operaciones de práctica cerradas' : 'Operaciones cerradas';
-    $('revisionBox').hidden = prac;
     var sen = senalesPeriodo(per), senOp = sen.filter(function (x) { return x.estado === 'operada'; }).length;
     var senTxt = sen.length ? '<p class="hint">Señales ' + (per === 'semana' ? 'de esta semana' : per === 'mes' ? 'de este mes' : 'en total') + ': ' + sen.length + ' · operadas ' + senOp + ' · sin operar ' + (sen.length - senOp) + '.</p>' : '';
     $('btnCsv').disabled = !S.trades.length; $('btnJson').disabled = !S.trades.length && !S.senales.length;
+    renderEstadisticas(lista, per, prac);
     if (!lista.length) {
-      box.innerHTML = senTxt;
-      var cuando = per === 'semana' ? 'esta semana' : per === 'mes' ? 'este mes' : 'todavía';
+      setHtml(box, senTxt);
+      var cuando = cuandoPer(per);
       list.innerHTML = prac ? '<p class="empty">No hay operaciones de práctica cerradas ' + cuando + '. Tocá Practicar en una señal: se abre en Abiertas y, al cerrarla, queda acá, separada de las reales.</p>'
         : '<p class="empty">No hay operaciones cerradas ' + cuando + '. Cada operación que cierres queda acá con su resultado en dólares y en R (R = cuántas veces lo que arriesgaste).</p>';
       return;
     }
     var st = estadisticas(lista);
-    var stat = function (label, val, sub, c) { return '<div class="stat"><span>' + label + '</span><b class="' + (c || '') + '">' + val + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>'; };
-    var vp = VER_POR[S.ui.verPor] || VER_POR.nivel;
-    var opciones = Object.keys(VER_POR).map(function (k) { return '<option value="' + k + '"' + (k === S.ui.verPor ? ' selected' : '') + '>' + VER_POR[k].titulo + '</option>'; }).join('');
-    box.innerHTML = '<div class="stats">' +
-      stat('Operaciones', st.n, st.gan + ' ganadas · ' + st.perd + ' perdidas' + (st.emp ? ' · ' + st.emp + ' en cero' : '')) +
-      stat('Acierto', nf0.format(st.gan / st.n * 100) + '%', 'con 1:' + ratio(S.cfg.rrMin) + ' necesitás ' + nf0.format(100 / (1 + S.cfg.rrMin)) + '%') +
-      stat('Resultado', moneyS(st.pnl), 'mejor ' + resultadoHtml(st.mejor, rfmt(st.mejor)) + ' · peor ' + resultadoHtml(st.peor, rfmt(st.peor)), 'res ' + cls(st.pnl)) +
-      stat('Total en R', rfmt(st.rSum), 'promedio ' + resultadoHtml(st.rAvg, rfmt(st.rAvg)), 'res ' + cls(st.rSum)) +
-      stat('Con reglas rotas', st.rotasN, st.rotasN ? 'suman ' + resultadoHtml(st.rotasR, rfmt(st.rotasR)) : 'ninguna', st.rotasN ? 'down' : '') +
-      stat('Fuera del plan', st.fueraN, st.fueraN ? 'suman ' + resultadoHtml(st.fueraR, rfmt(st.fueraR)) : 'ninguna', st.fueraN ? 'down' : '') +
+    setHtml(box, '<div class="stats dos">' +
+      statHtml('Operaciones', st.n, st.gan + ' ganadas · ' + st.perd + ' perdidas' + (st.emp ? ' · ' + st.emp + ' en cero' : '')) +
+      statHtml('Resultado', moneyS(st.pnl), 'en R ' + resultadoHtml(st.rSum, rfmt(st.rSum)) + '<br>mejor ' + resultadoHtml(st.mejor, rfmt(st.mejor)) + ' · peor ' + resultadoHtml(st.peor, rfmt(st.peor)), 'res ' + cls(st.pnl)) +
       '</div>' + senTxt +
-      '<div class="field"><label for="verPor">Ver resultados por</label><select id="verPor">' + opciones + '</select></div>' + tabla(vp.titulo, agrupar(lista, vp));
+      '<p class="hint">Promedio, factor de beneficio, rachas y qué fuente acierta más: <button type="button" class="small ghost" data-ir-parte="estadisticas">Ver estadísticas</button></p>');
     conservar(list, function () {
       list.innerHTML = '<ul class="trades">' + lista.map(function (t) {
         var plan = t.plan === 'si' ? ' · siguió el plan' : t.plan === 'no' ? ' · fuera del plan' : '';
@@ -2236,6 +2372,58 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
           '<input type="text" placeholder="Nota: qué sentiste, qué aprendiste" aria-label="Nota de ' + esc(t.activo) + '" data-keep="nota-' + t.id + '" data-nota="' + t.id + '" value="' + esc(t.nota || '') + '"></li>';
       }).join('') + '</ul>';
     });
+  }
+
+  /* ---------- Render: estadísticas del Diario (las cuentas las hacen estadisticas, quienAcierta y porVentana) ---------- */
+  function cuantas(n, uno, varios) { return n + ' ' + (n === 1 ? uno : varios); }
+  function rachaTxt(a) { return !a ? 'Sin racha' : a.tipo === 'ganadas' ? cuantas(a.n, 'ganada', 'ganadas') : cuantas(a.n, 'perdida', 'perdidas'); }
+  function pct(a, b) { return nf0.format(b ? a / b * 100 : 0) + '%'; }
+  function tablaFuentes(q) {
+    var fila = function (f, sub) {
+      return '<tr' + (sub ? ' class="sub"' : '') + '><td>' + (sub ? '<span class="sr">ChatGPT, </span>' : '') + esc(f.clave) + '</td><td class="n">' + f.n + '</td><td class="n">' + f.gan + ' · ' + pct(f.gan, f.n) + '</td><td class="n res ' + cls(f.rAvg) + '">' + rfmt(f.rAvg) + '</td></tr>';
+    };
+    return '<div class="tbl-wrap"><table><caption class="sr">Por fuente y, dentro de ChatGPT, por origen</caption><thead><tr><th>Fuente</th><th class="n">Ops</th><th class="n">Ganadas</th><th class="n">Promedio</th></tr></thead><tbody>' +
+      q.filas.map(function (f) { return fila(f) + f.origenes.map(function (o) { return fila(o, true); }).join(''); }).join('') + '</tbody></table></div>';
+  }
+  function barrasVentana(filas) {
+    return '<ul class="vent">' + filas.map(function (f) {
+      var nv = NIVEL_VENTANA[f.nivel];
+      return '<li data-nivel="' + f.nivel + '"><span class="vent-n">' + icono(nv.ico) + '<span>' + nv.txt + '<small>' + (f.n ? cuantas(f.n, 'operación', 'operaciones') : 'ninguna') + '</small></span></span>' +
+        '<span class="vent-v">' + (f.n ? resultadoHtml(f.rAvg, rfmt(f.rAvg)) : '—') + '</span>' +
+        '<span class="vent-bar" aria-hidden="true">' + (f.lado ? '<i data-lado="' + f.lado + '" style="width:' + (f.barra / 2) + '%"></i>' : '') + '</span></li>';
+    }).join('') + '</ul>';
+  }
+  function renderEstadisticas(lista, per, prac) {
+    var box = $('estStats'), det = $('estDetalle'), tablas = $('estTablas');
+    if (!lista.length) {
+      det.hidden = true; setHtml(tablas, '');
+      setHtml(box, '<p class="empty">' + (prac ? 'No hay operaciones de práctica cerradas ' : 'No hay operaciones cerradas ') + cuandoPer(per) + ', así que no hay números que mostrar. ' +
+        'Aparecen cuando cierres la primera' + (prac ? ' de práctica' : '') + '; desde ' + MIN_CONCLUSION + ' empiezan a decir algo.</p>');
+      return;
+    }
+    var st = estadisticas(lista), pocas = avisoPocas(st.n), q = quienAcierta(lista), v = porVentana(lista), fp = st.fueraPlan, c = st.caida, ra = st.racha;
+    var h = prac ? '<p class="hint">Solo tus operaciones de práctica: estos números no cuentan en tus resultados reales.</p>' : '';
+    if (pocas) h += avisoHtml('Pocos datos', 'alerta', esc(pocas));
+    h += '<div class="stats">' +
+      statHtml('Promedio por operación', rfmt(st.rAvg), '', 'res ' + cls(st.rAvg), 'Lo que ganás en promedio por cada 1 R que arriesgás.') +
+      statHtml('Ganadas', st.gan + ' de ' + st.n, pct(st.gan, st.n) + ' · ' + cuantas(st.perd, 'perdida', 'perdidas') + (st.emp ? ' · ' + st.emp + ' en cero' : ''), '', 'Ganada: cerró con más de $0. Las que quedaron en cero van aparte.') +
+      statHtml('Factor de beneficio', st.factor === null ? 'Sin pérdidas todavía' : ratio(st.factor), 'ganado ' + resultadoHtml(st.ganado, moneyS(st.ganado)) + ' · perdido ' + resultadoHtml(-st.perdido, moneyS(-st.perdido)), st.factor === null ? 'txt' : '', 'Lo ganado dividido lo perdido, en dólares. Más de 1: ganaste más de lo que perdiste.') +
+      statHtml('Caída máxima', c.r > 0.004 ? rfmt(-c.r) : 'Sin caídas', c.r > 0.004 ? 'de ' + resultadoHtml(c.desde, rfmt(c.desde)) + ' a ' + resultadoHtml(c.hasta, rfmt(c.hasta)) : '', c.r > 0.004 ? 'res down' : 'txt', 'El peor tramo desde un máximo de tu R acumulado, en orden de cierre.') +
+      statHtml('Racha actual', rachaTxt(ra.actual), 'mejor ' + cuantas(ra.mejor, 'ganada', 'ganadas') + ' · peor ' + cuantas(ra.peor, 'perdida', 'perdidas'), ra.actual ? (ra.actual.tipo === 'ganadas' ? 'up' : 'down') : 'txt', 'Seguidas hasta la última que cerraste. Las que quedaron en cero no suman ni cortan.') +
+      statHtml('Total del período', rfmt(st.rSum), resultadoHtml(st.pnl, moneyS(st.pnl)), 'res ' + cls(st.rSum), 'Todas las cerradas ' + (per === 'todo' ? 'del diario' : cuandoPer(per)) + ', en R y en dólares.') +
+      '</div>';
+    h += '<div class="est-sec"><h3>¿Quién acierta más?</h3>' + tablaFuentes(q) + (q.pocas ? '<p class="hint">Con tan pocas operaciones, la diferencia entre fuentes puede ser suerte.</p>' : '') + '</div>';
+    h += '<div class="est-sec"><h3>Por ventana de sesión</h3><p class="hint">Según la ventana en la que entraste (la de la barra de Hoy): cuántas y el promedio en R por operación.</p>' + barrasVentana(v) + '</div>';
+    h += '<div class="est-sec" id="estFuera"><h3>Fuera de tu plan</h3>' + (!fp.n ? '<p class="line-note">Ninguna operación rompió una regla ni fue fuera del plan.</p>'
+      : '<div class="stats dos">' + statHtml('Operaciones', fp.n + ' de ' + st.n, [st.rotasN ? cuantas(st.rotasN, 'con reglas rotas', 'con reglas rotas') : '', st.fueraN ? st.fueraN + ' fuera del plan' : ''].filter(Boolean).join(' · ')) +
+        statHtml('Sumaron', rfmt(fp.r), resultadoHtml(fp.pnl, moneyS(fp.pnl)), 'res ' + cls(fp.r)) + '</div>' +
+        '<p class="line-note">' + (fp.promSin === null ? 'Todas rompieron una regla o fueron fuera del plan: no queda ninguna para comparar.'
+          : 'Sin ellas, tu promedio habría sido <b>' + resultadoHtml(fp.promSin, rfmt(fp.promSin)) + '</b> por operación (en ' + cuantas(fp.nSin, 'operación', 'operaciones') + '), en vez de <b>' + resultadoHtml(st.rAvg, rfmt(st.rAvg)) + '</b>.') + '</p>') + '</div>';
+    setHtml(box, h);
+    det.hidden = false;
+    var vp = VER_POR[S.ui.verPor] || VER_POR.nivel;
+    var opciones = Object.keys(VER_POR).map(function (k) { return '<option value="' + k + '"' + (k === S.ui.verPor ? ' selected' : '') + '>' + VER_POR[k].titulo + '</option>'; }).join('');
+    setHtml(tablas, '<div class="field"><label for="verPor">Ver resultados por</label><select id="verPor">' + opciones + '</select></div>' + tabla(vp.titulo, agrupar(lista, vp)));
   }
 
   /* ---------- Texto con formato simple (resumen y revisión) ---------- */
@@ -2833,26 +3021,39 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   }
 
   /* ---------- Revisión con Claude ---------- */
-  function datosRevision(per) {
-    var lista = cerradasPeriodo(per), st = estadisticas(lista);
+  /* Datos que recibe Claude (función pura): los de siempre más las métricas de Estadísticas y las tablas por fuente y por ventana.
+     lista: las cerradas reales del período; sen: las señales del período; per: 'semana', 'mes' o 'todo'. */
+  function datosRevisionDe(lista, sen, cfg, per) {
+    var st = estadisticas(lista), q = quienAcierta(lista), fp = st.fueraPlan;
     var grupos = {};
     Object.keys(VER_POR).forEach(function (k) { grupos[VER_POR[k].titulo] = agrupar(lista, VER_POR[k]).map(function (f) { return { grupo: f[0], ops: f[1].n, ganadas: f[1].gan, totalR: round2(f[1].r) }; }); });
-    var sen = senalesPeriodo(per), comp = sen.filter(function (x) { return x.comprobacion && x.comprobacion.resultado; });
+    var comp = sen.filter(function (x) { return x.comprobacion && x.comprobacion.resultado; });
     var cuenta = {}; comp.forEach(function (x) { cuenta[x.comprobacion.resultado] = (cuenta[x.comprobacion.resultado] || 0) + 1; });
+    var fila = function (f) { return { operaciones: f.n, ganadas: f.gan, enCero: f.emp, promedioR: f.rAvg == null ? null : round2(f.rAvg), totalR: round2(f.r) }; };
     return {
       periodo: per === 'semana' ? 'esta semana' : per === 'mes' ? 'este mes' : 'todo', operaciones: st.n, ganadas: st.gan, perdidas: st.perd, resultadoUSD: round2(st.pnl), totalR: round2(st.rSum), promedioR: round2(st.rAvg),
-      conReglasRotas: { operaciones: st.rotasN, totalR: round2(st.rotasR) }, fueraDelPlan: { operaciones: st.fueraN, totalR: round2(st.fueraR) }, grupos: grupos,
-      detalle: lista.slice(0, 60).map(function (t) { return { fecha: claveDia(t.ts), hora: hhmm(t.ts), activo: t.activo, tipo: t.tipoActivo || null, direccion: t.dir, nivelUSD: t.nivel, senal: t.origen, seguridad: t.seguridad, R: isNum(t.r) ? round2(t.r) : null, USD: isNum(t.pnl) ? round2(t.pnl) : null, salida: t.cierre && t.cierre.motivo, siguioPlan: t.plan || null, reglasRotas: t.reglasRotas, nota: (t.nota || '').slice(0, 200) }; }),
+      pocasOperaciones: st.n < MIN_CONCLUSION, aviso: avisoPocas(st.n),
+      metricas: { promedioPorOperacionR: round2(st.rAvg), ganadas: st.gan, perdidas: st.perd, enCero: st.emp, porcentajeGanadas: st.n ? Math.round(st.gan / st.n * 100) : 0,
+        factorDeBeneficio: st.factor === null ? null : round2(st.factor), factorDeBeneficioTexto: st.factor === null ? 'Sin pérdidas todavía' : null, ganadoUSD: round2(st.ganado), perdidoUSD: round2(st.perdido),
+        caidaMaximaR: round2(st.caida.r), rachaActual: rachaTxt(st.racha.actual), mejorRachaGanadas: st.racha.mejor, peorRachaPerdidas: st.racha.peor, totalR: round2(st.rSum), totalUSD: round2(st.pnl) },
+      porFuente: q.filas.map(function (f) { var o = fila(f); o.fuente = f.clave; if (f.origenes.length) o.porOrigen = f.origenes.map(function (x) { var y = fila(x); y.origen = x.clave; return y; }); return o; }),
+      porVentanaDeSesion: porVentana(lista).map(function (f) { var o = fila(f); o.ventana = f.clave; return o; }),
+      conReglasRotas: { operaciones: st.rotasN, totalR: round2(st.rotasR) }, fueraDelPlan: { operaciones: st.fueraN, totalR: round2(st.fueraR) },
+      reglasRotasOFueraDelPlan: { operaciones: fp.n, totalR: round2(fp.r), promedioSinEllasR: fp.promSin === null ? null : round2(fp.promSin) }, grupos: grupos,
+      detalle: lista.slice(0, 60).map(function (t) { return { fecha: claveDia(t.ts), hora: hhmm(t.ts), activo: t.activo, tipo: t.tipoActivo || null, direccion: t.dir, nivelUSD: t.nivel, fuente: fuenteTxt(t), senal: t.origen, seguridad: t.seguridad, R: isNum(t.r) ? round2(t.r) : null, USD: isNum(t.pnl) ? round2(t.pnl) : null, salida: t.cierre && t.cierre.motivo, siguioPlan: t.plan || null, reglasRotas: t.reglasRotas, nota: (t.nota || '').slice(0, 200) }; }),
       senales: { pegadas: sen.length, operadas: sen.filter(function (x) { return x.estado === 'operada'; }).length, comprobadas: comp.length, resultados: cuenta },
-      reglas: { nivelesUSD: S.cfg.niveles, diarioUSD: S.cfg.diario, semanalUSD: S.cfg.semanal, beneficioRiesgoMinimo: S.cfg.rrMin }
+      reglas: { nivelesUSD: cfg.niveles, diarioUSD: cfg.diario, semanalUSD: cfg.semanal, beneficioRiesgoMinimo: cfg.rrMin }
     };
   }
+  function datosRevision(per) { return datosRevisionDe(cerradasPeriodo(per), senalesPeriodo(per), S.cfg, per); }
   function promptRevision(d) {
     return [
       'Sos el coach de trading de Johannes, que opera acciones de EE. UU. con CFD (x20) desde Bolivia.',
       'Escribí una revisión corta, de 250 palabras como máximo, en español simple. Si usás un término técnico, explicalo en la misma línea.',
       'Usá solo estos datos de su diario; no inventes nada. Medí en R (1R = lo que arriesgó en esa operación).',
-      'Si hay menos de 20 operaciones cerradas, decilo al principio y no saques conclusiones firmes: hablá de "primeras señales".',
+      'Si hay menos de ' + MIN_CONCLUSION + ' operaciones cerradas, decilo al principio y no saques conclusiones firmes: hablá de "primeras señales".',
+      'Las métricas (promedio en R, ganadas, factor de beneficio, caída máxima y rachas) y las tablas por fuente (porFuente) y por ventana de sesión ya están calculadas: usalas tal cual, no las recalcules.',
+      'Con pocas operaciones en cada fuente o ventana, la diferencia entre ellas puede ser suerte: decilo si las comparás. Si factorDeBeneficio es null es porque todavía no hubo pérdidas: no lo llames infinito.',
       'Formato exacto, con estos títulos:',
       '## Qué funciona', '- 2 o 3 puntos', '## Qué no funciona', '- 2 o 3 puntos', '## Reglas rotas', '- cuántas fueron y cuánto costaron en R', '## Un cambio para la próxima semana', '- uno solo, concreto y medible',
       '', 'Datos (JSON):', JSON.stringify(d)
@@ -2863,10 +3064,30 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     if (S.local) { doc.id = id; S.revisiones.unshift(doc); return; }
     REVISIONES.doc(id).set(clone(doc)).catch(function () { });
   }
+  var PERIODO_REV = { 'esta semana': 'Revisión de la semana', 'este mes': 'Revisión del mes', 'todo': 'Revisión de todo el diario' };
+  function textoBtnRevision() { return 'Pedir revisión ' + (S.ui.per === 'semana' ? 'de esta semana' : S.ui.per === 'mes' ? 'de este mes' : 'de todo el diario'); }
+  function cuandoRevision(r) { var ts = Number(r.ts); return DIAS[diaSemana(claveDia(ts))] + ' ' + ddmm(ts) + ' · ' + hhmm(ts); }
+  /* Las revisiones anteriores (todas menos la que se muestra arriba), por semana y desplegables. Se recuerda cuáles abriste. */
+  function renderRevisionesAnteriores(mostrada) {
+    var box = $('revAnteriores'), resto = S.revisiones.filter(function (r) { return r !== mostrada; }), sem = revisionesPorSemana(resto);
+    if (!sem.length) { setHtml(box, S.revisiones.length ? '<p class="hint">Todavía no hay revisiones anteriores. Cada revisión que pidas queda guardada acá, por semana.</p>' : ''); return; }
+    setHtml(box, '<h3>Revisiones anteriores</h3>' + sem.map(function (g) {
+      return '<div class="rev-sem"><h4>Semana del ' + g.semana.slice(8, 10) + '/' + g.semana.slice(5, 7) + '</h4>' + g.revisiones.map(function (r) {
+        var id = String(r.id || ('r' + r.ts));
+        return '<details class="rev" data-rev="' + esc(id) + '"' + (S.ui.revAbiertas[id] ? ' open' : '') + '><summary><span class="rev-t"><span>' + esc(PERIODO_REV[r.periodo] || 'Revisión') + '</span><small>' + esc(cuandoRevision(r)) + '</small></span></summary>' +
+          '<div class="prose">' + textoAHtml(String(r.texto || '')) + '</div></details>';
+      }).join('') + '</div>';
+    }).join(''));
+  }
   function renderRevision() {
+    var prac = S.ui.diarioModo === 'practica';
     $('btnRevision').hidden = !SAMPLE;
-    if (S.ui.revisando || !S.loaded) return;
-    var r = S.revisiones[0];
+    $('revisionBox').hidden = prac; $('revAnteriores').hidden = prac; $('rev-prac').hidden = !prac;
+    if (!S.loaded) return;
+    var r = S.ui.revisando ? null : S.revisiones[0];
+    renderRevisionesAnteriores(r);
+    if (S.ui.revisando) return;
+    $('btnRevision').textContent = textoBtnRevision();
     if (r) {
       $('revisionFecha').textContent = 'Última revisión: ' + ddmm(Number(r.ts)) + ' ' + hhmm(Number(r.ts)) + ' · ' + (r.periodo || '');
       $('revisionTxt').innerHTML = textoAHtml(String(r.texto || ''));
@@ -3272,8 +3493,17 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   document.querySelectorAll('input[name="tema"]').forEach(function (el) { el.addEventListener('change', function () { aplicarTema(this.value); guardarTema(S.ui.tema); }); });
 
   /* ---------- Eventos: diario y ajustes ---------- */
-  document.querySelectorAll('input[name="d-per"]').forEach(function (el) { el.addEventListener('change', function () { S.ui.per = this.value; renderDiario(); }); });
-  document.querySelectorAll('input[name="d-modo"]').forEach(function (el) { el.addEventListener('change', function () { S.ui.diarioModo = this.value === 'practica' ? 'practica' : 'real'; renderDiario(); }); });
+  document.querySelectorAll('input[name="d-per"]').forEach(function (el) { el.addEventListener('change', function () { S.ui.per = this.value; renderDiario(); renderRevision(); }); });
+  document.querySelectorAll('input[name="d-modo"]').forEach(function (el) { el.addEventListener('change', function () { S.ui.diarioModo = this.value === 'practica' ? 'practica' : 'real'; renderDiario(); renderRevision(); }); });
+  function irAParte(p) {
+    if (PARTES_DIARIO.indexOf(p) < 0) p = 'operaciones';
+    S.ui.diarioParte = p;
+    var r = document.querySelector('input[name="d-parte"][value="' + p + '"]'); if (r) r.checked = true;
+    renderDiario(); renderRevision();
+  }
+  document.querySelectorAll('input[name="d-parte"]').forEach(function (el) { el.addEventListener('change', function () { irAParte(this.value); }); });
+  $('diarioStats').addEventListener('click', function (e) { var b = e.target.closest('[data-ir-parte]'); if (b) { irAParte(b.getAttribute('data-ir-parte')); enfocar('#d-p-est'); } });
+  $('revAnteriores').addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-rev]')) S.ui.revAbiertas[d.getAttribute('data-rev')] = d.open; }, true);
   var notaTimers = {}, notaGuardada = {};
   function guardarNota(id, valor) {
     clearTimeout(notaTimers[id]);
@@ -3353,7 +3583,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     if (b) aplicarGestion(b.getAttribute('data-ge-aplicar'));
     else if (e.target.closest('#btnReRevisar')) revisarPosicion(true);
   });
-  $('diarioStats').addEventListener('change', function (e) { if (e.target.id === 'verPor') { S.ui.verPor = e.target.value; renderDiario(); } });
+  $('estTablas').addEventListener('change', function (e) { if (e.target.id === 'verPor') { S.ui.verPor = e.target.value; renderDiario(); } });
   $('comprobarLista').addEventListener('click', function (e) {
     var d = e.target.closest('[data-sen-borrar]');
     if (d) {
@@ -3395,7 +3625,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
       $('revisionFecha').textContent = 'Revisión de ' + d.periodo + ' · ' + ddmm(ts) + ' ' + hhmm(ts);
       guardarRevision({ ts: ts, periodo: d.periodo, semana: S.est.semana, texto: res.text });
     }, function (e) { box.innerHTML = (e && e.text ? textoAHtml(e.text) : '') + '<p class="hint err">' + esc(msgSample(e)) + '</p>'; })
-      .then(function () { S.ui.revisando = false; b.disabled = false; b.textContent = 'Pedir revisión'; });
+      .then(function () { S.ui.revisando = false; b.disabled = false; b.textContent = textoBtnRevision(); });
   });
 
   /* ---------- Arranque ---------- */
@@ -3423,7 +3653,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
           if (S.loaded) { renderDiario(); renderComprobar(); renderResumen(); renderRevision(); renderBandeja(); }
         }, function () { });
       };
-      lista(SENALES, 500, 'senales'); lista(RESUMENES, 7, 'resumenes'); lista(REVISIONES, 10, 'revisiones');
+      lista(SENALES, 500, 'senales'); lista(RESUMENES, 7, 'resumenes'); lista(REVISIONES, 52, 'revisiones'); // un año de revisiones semanales para la lista de anteriores
       escucharEventos(db);
       CFGDOC.onSnapshot(function (snap) { S.cfg = normCfg(snap.exists ? snap.data() : null); renderAll(); }, function () { });
     }, function () { modoLocal('No se pudo conectar el guardado. La calculadora funciona, pero nada se guarda.'); capacidadesListas(); });
@@ -3439,7 +3669,9 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     estadoPausa: estadoPausa, avisoMitad: avisoMitad, bloqueosProteccion: bloqueosProteccion, PAUSA_RACHA: PAUSA_RACHA, AVISO_MITAD: AVISO_MITAD, MACRO_MIN: MACRO_MIN,
     estadoSenal: estadoSenal, claveSenal: claveSenal, senalRepetida: senalRepetida, docSenal: docSenal, senalComoOpcion: senalComoOpcion, faltanDatos: faltanDatos, filtrarSenales: filtrarSenales,
     practicaDeSenal: practicaDeSenal, normalizarCapturaSenal: normalizarCapturaSenal, promptCapturaSenal: promptCapturaSenal, esPractica: esPractica, soloReales: soloReales,
-    FUENTES: FUENTES, DESCARTES: DESCARTES, LUZ_SENAL: LUZ_SENAL, SENAL_VIEJA_MIN: SENAL_VIEJA_MIN };
+    FUENTES: FUENTES, DESCARTES: DESCARTES, LUZ_SENAL: LUZ_SENAL, SENAL_VIEJA_MIN: SENAL_VIEJA_MIN,
+    estadisticas: estadisticas, agrupar: agrupar, VER_POR: VER_POR, enOrdenDeCierre: enOrdenDeCierre, quienAcierta: quienAcierta, porVentana: porVentana, avisoPocas: avisoPocas,
+    revisionesPorSemana: revisionesPorSemana, datosRevisionDe: datosRevisionDe, promptRevision: promptRevision, MIN_CONCLUSION: MIN_CONCLUSION };
   aplicarTema(leerTema());
   var tabIni = (location.hash || '').replace('#', '');
   if (TABS.indexOf(tabIni) < 0) { try { tabIni = localStorage.getItem('panel-trading-tab') || 'hoy'; } catch (e) { tabIni = 'hoy'; } }

@@ -267,16 +267,20 @@ const MOCK = `(() => {
   sen = await store('senales/');
   ok('ui comprobación guardada', sen.some(x => x.comprobacion && x.comprobacion.resultado === 'tp1' && x.comprobacion.confianza_lectura === 'media'), null);
   ok('ui tabla de comprobadas', /TP primero/.test(await txt('#comprobarStats')), await txt('#comprobarStats'));
+  // Desde v3.7 la revisión está en la parte Revisión del Diario y las tablas de "Ver resultados por", en Estadísticas → Más detalle.
+  await pg.click('label[for="d-p-rev"]');
   await pg.click('#btnRevision');
   await pg.waitForFunction(() => /Qué funciona/.test(document.getElementById('revisionTxt').textContent) && !document.getElementById('btnRevision').disabled);
   const rev = await store('revisiones/');
   ok('ui revisión guardada', rev.length === 1 && /Qué funciona/.test(rev[0].texto), rev.length);
   const promptRev = await pg.evaluate(() => window.__sampleCalls.filter(c => c.tipo === 'texto').pop().input);
   ok('ui revisión manda datos del diario', /"operaciones":1/.test(promptRev) && /menos de 20 operaciones/.test(promptRev), promptRev.slice(0, 120));
+  await pg.click('label[for="d-p-est"]');
+  await pg.click('#estDetalle > summary');
   await pg.selectOption('#verPor', 'tipo');
-  ok('ui ver por tipo', /Tecnología/.test(await txt('#diarioStats')), null);
+  ok('ui ver por tipo', /Tecnología/.test(await txt('#estTablas')), null);
   await pg.selectOption('#verPor', 'hora');
-  ok('ui ver por hora', /:00 a /.test(await txt('#diarioStats')), null);
+  ok('ui ver por hora', /:00 a /.test(await txt('#estTablas')), null);
 
   // Estado, CSV, JSON, desborde
   await tab('hoy');

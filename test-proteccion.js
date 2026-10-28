@@ -10,6 +10,7 @@ const html = fs.readFileSync(path.join(dir, archivo), 'utf8');
 const suite = fs.readFileSync(path.join(__dirname, 'test-panel.js'), 'utf8');
 const MOCK = suite.slice(suite.indexOf('const MOCK = `') + 'const MOCK = `'.length, suite.indexOf('})();`;') + '})();'.length);
 const { NY, AHORA, datosSemana } = require('./datos-tablero.js');
+const { adelantar } = require('./reloj-pruebas.js'); // saltos de reloj sin la carrera del reloj falso (ver el archivo)
 const skeleton = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}[hidden]{display:none!important}</style></head><body>' + html + '</body></html>';
 const pagina = path.join(dir, 'test-proteccion-page.html');
 fs.writeFileSync(pagina, skeleton);
@@ -41,7 +42,10 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   };
   const sembrar = async (pg, col, docs) => {
     await pg.evaluate(async ([c, d]) => { const db = await window.claude.use('db'); for (const [id, x] of d) await db.collection(c).doc(id).set(x); }, [col, docs]);
-    await pg.waitForTimeout(400); // el simulador avisa con setTimeout: que termine de re-dibujar
+    // El simulador avisa a cada suscripción con un setTimeout(0). El reloj falso los dispara en orden de creación, así que un
+    // setTimeout(0) agendado ahora corre recién cuando la página ya recibió todos los avisos y se re-dibujó: no depende de cuánto tarde.
+    await pg.evaluate(() => new Promise(r => setTimeout(r, 0)));
+    await pg.waitForTimeout(400); // margen que ya tenía la prueba
   };
   const guardados = (pg, col) => pg.evaluate((c) => [...window.__mockStore.entries()].filter(([k]) => k.startsWith(c + '/')).map(([k, v]) => Object.assign({ _id: k.split('/')[1] }, v)), col);
   const txt = (pg, sel) => pg.textContent(sel);
@@ -202,14 +206,14 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     ev = await guardados(pg, 'eventos');
     ok('quitar: el segundo toque quita ese dato y solo ese', ev.length === 1 && ev[0].nombre === 'CPI' && /Dato quitado/.test(await txt(pg, '#mc-msg')), ev);
     // Pasa el tiempo: a las 11:51 el dato ya salió hace más de 30 min
-    await pg.clock.fastForward('46:00');
+    await adelantar(pg, '46:00');
     await pg.waitForFunction(() => !document.querySelector('#tb-prot .aviso-p'));
     ok('Hoy libre: sin aviso y con una línea (los datos de hoy ya salieron)', /Ya salieron los datos macro que cargaste para hoy/.test(await txt(pg, '#tb-prot')) && /Ya salió/.test(await txt(pg, '#mc-lista')), await txt(pg, '#tb-prot'));
     await pg.fill('#mc-hora', '14:01'); await pg.fill('#mc-nombre', 'Fed'); await pg.click('#btnMacro');
     await pg.waitForFunction(() => /Próximo dato/.test(document.getElementById('tb-prot').textContent));
     ok('Hoy libre: "Próximo dato: Fed en 2 h 10 min"', /Próximo dato: Fed en 2 h 10 min \(14:01 Bolivia · 14:01 NY\)\./.test(await txt(pg, '#tb-prot')), await txt(pg, '#tb-prot'));
     // Pasadas más de 2 horas, el dato viejo deja de mostrarse
-    await pg.clock.fastForward('01:30:00');
+    await adelantar(pg, '01:30:00');
     await pg.waitForFunction(() => !/CPI/.test(document.getElementById('mc-lista').textContent));
     ok('lista: los que salieron hace más de 2 h no se muestran (pero no se borran)', (await guardados(pg, 'eventos')).length === 2 && (await pg.$$('#mc-lista .mc-ev')).length === 1, await txt(pg, '#mc-lista'));
     await ctx.close();
@@ -235,7 +239,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     const t = await yaEntre(pg);
     ok('Ya entré igual: registra y marca la regla del dato macro (sin contarla dos veces)', t && t.estado === 'abierta' && JSON.stringify(t.reglasRotas) === '["Entrada a menos de 30 min de un dato macro"]', t && t.reglasRotas);
     // Al pasar la ventana, todo vuelve a la normalidad
-    await pg.clock.fastForward('46:00');
+    await adelantar(pg, '46:00');
     await pg.waitForFunction(() => !document.getElementById('chk-macro').disabled);
     await llenarOperar(pg);
     ok('Operar después del dato: la casilla vuelve a marcarse y se registra normal', await pg.isChecked('#chk-macro') && (await txt(pg, '#btnRegistrar')) === 'Registrar entrada' && !(await txt(pg, '#op-prot')), await txt(pg, '#btnRegistrar'));
@@ -254,7 +258,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await llenarOperar(pg);
     ok('Operar pausa: botón deshabilitado con el motivo', await pg.isDisabled('#btnRegistrar') && (await txt(pg, '#btnRegistrar')) === 'Pausa: 15 min tras 2 pérdidas seguidas (hasta las 11:20)', await txt(pg, '#btnRegistrar'));
     ok('Operar pausa: aviso ámbar sobre el botón', (await txt(pg, '#op-prot .ap-tag')) === 'Pausa: 15 min', await txt(pg, '#op-prot'));
-    await pg.clock.fastForward('05:00');
+    await adelantar(pg, '05:00');
     await pg.waitForFunction(() => /Pausa: 10 min/.test(document.getElementById('tb-prot').textContent));
     ok('Hoy pausa: la cuenta atrás baja sola', /Pausa: 10 min/.test(await txt(pg, '#tb-prot .ap-tag')) && /Pausa: 10 min/.test(await txt(pg, '#btnRegistrar')), await txt(pg, '#tb-prot .ap-tag'));
     ok('Operar pausa: "Ya entré igual" disponible', await visible(pg, '#btnYaEntre') && !(await pg.isDisabled('#btnYaEntre')), await txt(pg, '#btnYaEntre'));
@@ -266,7 +270,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await sembrar(r.pg, 'trades', [cerrada('a', -10, BO(10, 14, 10, 40)), cerrada('b', -10, BO(10, 14, 10, 50))]);
     await llenarOperar(r.pg);
     ok('pausa: activa antes de las 11:20', await r.pg.isDisabled('#btnRegistrar'), await txt(r.pg, '#btnRegistrar'));
-    await r.pg.clock.fastForward('15:30');
+    await adelantar(r.pg, '15:30');
     await r.pg.waitForFunction(() => !document.querySelector('#tb-prot .aviso-p'));
     ok('pausa: a los 30 min se levanta sola (Hoy y Operar)', (await txt(r.pg, '#btnRegistrar')) === 'Registrar entrada' && !(await txt(r.pg, '#op-prot')), await txt(r.pg, '#btnRegistrar'));
     await r.ctx.close();
@@ -345,7 +349,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await pg.click('#t-operar');
     await pg.fill('#f-pegar', 'REGISTRO: 14/10/2026 | NVDA | compra | 180,50 | 178,90 | 180,50 | 183,00 | 185,50 | 27 | 145,00 | estándar (USD 27)');
     await pg.click('#btnPegar');
-    await pg.clock.fastForward('00:31'); // en modo local la lista de señales se refresca con el reloj (cada 30 s), como antes de esta tarea
+    await adelantar(pg, '00:31'); // en modo local la lista de señales se refresca con el reloj (cada 30 s), como antes de esta tarea
     await pg.click('#t-diario');
     ok('local: la señal pegada aparece con "Eliminar"', (await pg.$$('#comprobarLista [data-sen-borrar]')).length === 1, await txt(pg, '#comprobarLista'));
     await pg.click('#comprobarLista [data-sen-borrar]'); await pg.click('#comprobarLista [data-sen-borrar]');
