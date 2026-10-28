@@ -28,6 +28,7 @@ const MOCK_CAPTURA = `(() => {
   };
 })();`;
 const { NY, AHORA, datosSemana } = require('./datos-tablero.js');
+const { adelantar } = require('./reloj-pruebas.js'); // saltos de reloj sin la carrera del reloj falso (ver el archivo)
 const skeleton = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}[hidden]{display:none!important}</style></head><body>' + html + '</body></html>';
 const pagina = path.join(dir, 'test-senales-page.html');
 fs.writeFileSync(pagina, skeleton);
@@ -61,7 +62,10 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   };
   const sembrar = async (pg, col, docs) => {
     await pg.evaluate(async ([c, d]) => { const db = await window.claude.use('db'); for (const [id, x] of d) await db.collection(c).doc(id).set(x); }, [col, docs]);
-    await pg.waitForTimeout(400); // el simulador avisa con setTimeout: que termine de re-dibujar
+    // El simulador avisa a cada suscripción con un setTimeout(0). El reloj falso los dispara en orden de creación, así que un
+    // setTimeout(0) agendado ahora corre recién cuando la página ya recibió todos los avisos y se re-dibujó: no depende de cuánto tarde.
+    await pg.evaluate(() => new Promise(r => setTimeout(r, 0)));
+    await pg.waitForTimeout(400); // margen que ya tenía la prueba
   };
   const guardados = (pg, col) => pg.evaluate((c) => [...window.__mockStore.entries()].filter(([k]) => k.startsWith(c + '/')).map(([k, v]) => Object.assign({ _id: k.split('/')[1] }, v)), col);
   const txt = (pg, sel) => pg.textContent(sel);
@@ -308,7 +312,8 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     // Operar desde la tarjeta verde: la calculadora sigue exigiendo el precio de Quantfury
     const idNv = (await tarjetas(pg)).find(x => x.activo === 'NVDA' && /180,90/.test(x.t)).id;
     await pg.click('#sen-lista .sen[data-sen="' + idNv + '"] [data-sen-op]');
-    await pg.waitForTimeout(150);
+    // Cargar es inmediato; el paso a "vista" se guarda un instante después: esperarlo en la base.
+    await pg.waitForFunction((id) => document.getElementById('f-activo').value === 'NVDA' && (window.__mockStore.get('senales/' + id) || {}).estado === 'vista', idNv);
     ok('Operar: carga la señal en la calculadora', (await pg.inputValue('#f-activo')) === 'NVDA' && (await pg.inputValue('#f-entrada')) === '182,40' && (await pg.inputValue('#f-sl1')) === '180,90' && (await pg.inputValue('#f-tp2')) === '186,20' && await pg.isChecked('#f-n2') && (await pg.inputValue('#f-tipoact')) === 'Semis/IA', await txt(pg, '#pegarMsg'));
     ok('Operar: el precio de Quantfury sigue siendo obligatorio', (await pg.inputValue('#f-ahora')) === '' && await pg.isDisabled('#btnRegistrar') && /Precio de Quantfury no verificado/.test(await txt(pg, '#btnRegistrar')) && await pg.evaluate(() => document.activeElement && document.activeElement.id === 'f-ahora'), await txt(pg, '#btnRegistrar'));
     s = await guardados(pg, 'senales');
@@ -318,14 +323,15 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     ok('Operar: con el precio y las casillas se registra como siempre', (await txt(pg, '#btnRegistrar')) === 'Registrar entrada', await txt(pg, '#btnRegistrar'));
     await pg.click('#btnRegistrar');
     await pg.waitForFunction(() => /Registrada NVDA/.test(document.getElementById('calcMsg').textContent));
-    await pg.waitForTimeout(150);
+    // La señal pasa a "operada" después de guardar la operación, y la tarjeta se va con el aviso de la base: esperar las dos cosas.
+    await pg.waitForFunction((id) => (window.__mockStore.get('senales/' + id) || {}).estado === 'operada' && !document.querySelector('#sen-lista .sen[data-sen="' + id + '"]'), idNv);
     const t = (await guardados(pg, 'trades'))[0];
     s = await guardados(pg, 'senales');
     ok('Operar: la operación guarda la fuente y la señal; no es de práctica', t.fuente === 'Claude' && t.senalId === idNv && !t.practica && t.unidades === 18, t);
     ok('Operar: la señal queda "operada" y sale de Nuevas', s.find(x => x._id === idNv).estado === 'operada' && !(await tarjetas(pg)).some(x => x.id === idNv), null);
     // Ajustar niveles (ámbar) también carga, con el aviso del nivel
     await pg.click(card('AMD') + ' [data-sen-op]');
-    await pg.waitForTimeout(120);
+    await pg.waitForFunction(() => document.getElementById('f-activo').value === 'AMD');
     ok('Ajustar niveles: carga la señal y avisa del nivel no reconocido', (await pg.inputValue('#f-activo')) === 'AMD' && await pg.isChecked('#f-n0') && /No reconocí el nivel de riesgo «Agresivo»/.test(await txt(pg, '#pegarMsg')), await txt(pg, '#pegarMsg'));
     await ctx.close();
   }
@@ -396,7 +402,13 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await pg.fill('#ns-' + idP, '181,50');
     await pg.click('.pos[data-id="' + idP + '"] [data-act="ok-stop"]');
     await pg.waitForFunction((id) => (window.__mockStore.get('trades/' + id) || {}).stopActual === 181.5, idP);
-    ok('Abiertas: mover el stop de una de práctica funciona igual', true, null);
+    await pg.waitForFunction((id) => /Stop movido181,50/.test((document.querySelector('.pos[data-id="' + id + '"] dl.lv') || {}).textContent || ''), idP);
+    const movida = (await guardados(pg, 'trades')).find(x => x._id === idP);
+    ok('Abiertas: mover el stop de una de práctica funciona igual (se guarda con su movimiento y se ve en la tarjeta)', movida.stopActual === 181.5 && movida.practica === true && movida.estado === 'abierta' && movida.movimientos.length === 1 &&
+      movida.movimientos[0].de === 180.9 && movida.movimientos[0].a === 181.5 && movida.movimientos[0].por === 'manual', movida.movimientos);
+    await pg.click('#t-hoy');
+    ok('Abiertas: mover el stop de una de práctica no toca los presupuestos ni el semáforo', (await txt(pg, '#meters')) === antes.meters && (await pg.getAttribute('#verdict', 'data-luz')) === antes.luz && (await txt(pg, '#mini-txt')) === antes.mini, await txt(pg, '#meters'));
+    await pg.click('#t-abiertas');
     await pg.click('.pos[data-id="' + idP + '"] [data-act="tp1"]');
     ok('Abiertas: el TP1 de una de práctica avisa que no cuenta', /Es de práctica: el resultado no cuenta en tu presupuesto\./.test(await txt(pg, '.pos[data-id="' + idP + '"] .panel')), await txt(pg, '.pos[data-id="' + idP + '"] .panel'));
     await pg.click('.pos[data-id="' + idP + '"] [data-act="cancelar"]');
@@ -463,7 +475,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await pg.evaluate(() => { const b = document.querySelector('#sen-lista [data-sen-op]'); b.disabled = false; b.click(); });
     await pg.waitForTimeout(150);
     ok('rojo: aunque se fuerce el botón, no carga la señal', (await pg.inputValue('#f-activo')) === '', await pg.inputValue('#f-activo'));
-    await pg.clock.fastForward('46:00');
+    await adelantar(pg, '46:00');
     await pg.waitForFunction(() => !document.querySelector('#sen-lista .sen-est[data-luz="rojo"]'));
     c = await tarjetas(pg);
     ok('rojo: pasado el dato vuelven a su color, y la señal vieja lo dice', c.map(x => x.luz).join() === 'verde,ambar,ambar' && c.every(x => /Señal de hace 46 min: mirá el precio en Quantfury antes de entrar\./.test(x.t)) && /11:05 · hace 46 min/.test(c[0].t), c.map(x => x.luz));
@@ -519,11 +531,12 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await sembrar(pg, 'senales', [['s-vista', vieja('TSLA', 10)], ['s-oper', vieja('AAPL', 9, { estado: 'operada', tradeTs: BO(10, 14, 9, 5) })], ['s-ayer', vieja('META', 10, { ts: BO(10, 13, 10, 0), dia: '2026-10-13' })],
       ['c1', { ts: BO(10, 14, 10, 30), dia: '2026-10-14', origen: 'Capturas', activo: 'INTC', dir: '', entrada: null, sl1: null, sl2: null, tp1: null, tp2: null, nivel: null, estado: 'vista', texto: 'Sin setup', analisis: { puntaje: 35, banda: 'No cumple: mejor no operar' } }]]);
     await pg.click('#t-operar');
+    await hayTarjeta(pg, 'TSLA');
     const c = await tarjetas(pg);
     ok('compatibilidad: la "vista" de hoy aparece en Nuevas con "Sin dato"', c.length === 1 && c[0].activo === 'TSLA' && /Sin dato · Radar/.test(c[0].t) && c[0].luz === 'verde', c.map(x => x.t.slice(0, 80)));
     ok('compatibilidad: ni la operada, ni la de ayer, ni el análisis que dijo no operar', !c.some(x => /AAPL|META|INTC/.test(x.activo)), null);
     await pg.click(card('TSLA') + ' [data-sen-op]');
-    await pg.waitForTimeout(120);
+    await pg.waitForFunction(() => document.getElementById('f-entrada').value === '250,00');
     ok('compatibilidad: Operar en una señal vieja carga la calculadora', (await pg.inputValue('#f-entrada')) === '250,00' && await pg.isChecked('#f-n2') && /Nivel de riesgo: Estándar/.test(await txt(pg, '#pegarMsg')), await txt(pg, '#pegarMsg'));
     ok('compatibilidad: la vieja no se reescribe (sigue "vista", sin fuente)', await pg.evaluate(() => { const d = window.__mockStore.get('senales/s-vista'); return d.estado === 'vista' && !('fuente' in d); }), null);
     await pg.click('#t-diario');
@@ -538,7 +551,8 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await pg.setInputFiles('#cap-files', [{ name: 'd.png', mimeType: 'image/png', buffer: png }]);
     await pg.click('#btnAnalizar');
     await pg.waitForSelector('#cap-resultado .score');
-    await pg.waitForTimeout(200);
+    // El análisis se guarda como señal después de mostrarse: esperarlo en la base.
+    await pg.waitForFunction(() => [...window.__mockStore.entries()].some(([k, v]) => k.startsWith('senales/') && v.origen === 'Capturas' && v.activo === 'NVDA'));
     const an = (await guardados(pg, 'senales')).find(x => x.origen === 'Capturas' && x.activo === 'NVDA');
     ok('Buscar: el análisis se guarda como señal con fuente "Claude"', an && an.fuente === 'Claude' && an.estado === 'vista', an && an.fuente);
     ok('Buscar: el botón dice "Cargar en la calculadora"', (await txt(pg, '#btnCargarAnalisis')) === 'Cargar en la calculadora', null);
@@ -585,6 +599,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await leer(r.pg, TRES + '\nBRK.B: señal NO VIGENTE\n' + REG('BRK.B', 'venta', '1.480,50', '1.484,00', '1.474,00', '1.468,00', 'Alta convicción'));
     // Una tarjeta en rojo con motivos ámbar debajo: dato macro con nombre largo
     await sembrar(r.pg, 'eventos', [['e1', { ts: BO(10, 14, 11, 20), nombre: 'Sentimiento del consumidor (U. Michigan)' }]]);
+    await r.pg.waitForFunction(() => document.querySelector('#tb-prot .aviso-p')); // que el aviso del dato macro esté en pantalla antes de medir
     for (const tema of ['claro', 'oscuro']) {
       await r.pg.click('label[for="tema-' + tema + '"]');
       for (const t of TABS) {

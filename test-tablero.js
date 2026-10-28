@@ -9,6 +9,7 @@ const html = fs.readFileSync(path.join(dir, archivo), 'utf8');
 const suite = fs.readFileSync(path.join(__dirname, 'test-panel.js'), 'utf8');
 const MOCK = suite.slice(suite.indexOf('const MOCK = `') + 'const MOCK = `'.length, suite.indexOf('})();`;') + '})();'.length);
 const { NY, AHORA, datosSemana } = require('./datos-tablero.js');
+const { adelantar } = require('./reloj-pruebas.js'); // saltos de reloj sin la carrera del reloj falso (ver el archivo)
 const skeleton = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}[hidden]{display:none!important}</style></head><body>' + html + '</body></html>';
 const pagina = path.join(dir, 'test-tablero-page.html');
 fs.writeFileSync(pagina, skeleton);
@@ -219,7 +220,7 @@ const TABS = ['hoy', 'analizar', 'operar', 'abiertas', 'diario'];
   ok('tablero: tocar la fila lleva a Abiertas', await pg.isVisible('#p-abiertas') && !(await pg.isVisible('#p-hoy')), null);
   await pg.click('#t-hoy');
   // c) 16 minutos después el precio ya no vale
-  await pg.clock.fastForward('16:00');
+  await adelantar(pg, '16:00');
   await pg.waitForTimeout(100);
   filas = await pg.$$eval('#tb-ab-lista .ab-fila', els => els.map(e => e.textContent));
   ok('tablero: precio de más de 15 min → "sin precio vigente" y ningún número', /sin precio vigente/.test(filas[0]) && !/Ahora/.test(filas[0]) && !/\+\$34/.test(filas[0]), filas[0]);

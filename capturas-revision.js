@@ -13,6 +13,7 @@ const html = fs.readFileSync(path.join(dir, archivo), 'utf8');
 const suite = fs.readFileSync(path.join(__dirname, 'test-panel.js'), 'utf8');
 const MOCK = suite.slice(suite.indexOf('const MOCK = `') + 'const MOCK = `'.length, suite.indexOf('})();`;') + '})();'.length);
 const { datosSemana, AHORA, NY } = require('./datos-tablero.js');
+const { adelantar } = require('./reloj-pruebas.js'); // saltos de reloj sin la carrera del reloj falso (ver el archivo)
 const BO = (m, d, h, mi) => Date.UTC(2026, m - 1, d, h + 4, mi); // Bolivia: UTC−4 todo el año
 // Una pérdida chica cerrada hoy a las 10:50: con la de MU (10:15) son dos seguidas → pausa hasta las 11:20.
 // Tres señales: NVDA cumple (verde), MU tiene el TP1 en 1:1,2 (ámbar) y AMD no dice el nivel de riesgo (ámbar).
@@ -80,7 +81,7 @@ fs.mkdirSync(salida, { recursive: true });
     await pg.fill('#f-pegar', SENALES);
     await pg.click('#btnPegar');
     await pg.waitForFunction(() => document.querySelectorAll('#sen-lista .sen').length === 3);
-    if (minutos) await pg.clock.fastForward(minutos * 60000);
+    if (minutos) await adelantar(pg, minutos * 60000);
     await pg.waitForTimeout(150);
   };
   const nombre = (tab) => tab === 'analizar' ? 'buscar' : tab === 'operar' ? 'senales' : tab;
