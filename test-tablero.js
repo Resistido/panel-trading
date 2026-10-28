@@ -41,6 +41,9 @@ const TABS = ['hoy', 'analizar', 'operar', 'abiertas', 'diario'];
     await pg.evaluate(async (d) => { const db = await window.claude.use('db'); for (const [id, x] of d) await db.collection('trades').doc(id).set(x); }, docs);
     /* El simulador avisa los cambios con setTimeout: se espera a que termine de re-dibujar para no escribir en un campo que está por reemplazarse. */
     await pg.waitForTimeout(500);
+    /* v3.8: y además hasta que la página recibió todos los avisos del simulador (el reloj falso los dispara en orden de creación; ver CLAUDE.md).
+       Con avisos todavía en cola, un re-dibujo atrasado puede ver la hora de antes y tomar por vencido un precio recién escrito. */
+    await pg.evaluate(() => new Promise(r => setTimeout(r, 0)));
   };
   const txt = (pg, sel) => pg.textContent(sel);
 

@@ -93,7 +93,7 @@ Un documento por día de **Bolivia (UTC−4 todo el año)**. Así no se agota el
 - `tipo`: `investiga`, `analiza`, `propone`, `registra`, `riesgo`, `pausa`, `error` o `resumen`. Los eventos `pausa` con `origen: "Johannes"` los escribe solo Centinela.
 - **Tope: 200 eventos por día.** Si el día ya tiene 200, saca el más viejo antes de agregar. Los eventos van en orden de hora (el más viejo primero).
 - Para agregar: `get` del documento del día; si existe, `update` de `eventos` (la lista completa con el nuevo al final) y `ts`, con `if_version`; si no existe, `set` del documento completo.
-- Centinela muestra la bitácora de hoy y de ayer, la más nueva arriba.
+- Centinela muestra la bitácora de hoy y de ayer, la más nueva arriba. Desde tu tarjeta, Johannes puede preguntarle a Claude por ti ("Preguntale al agente"): la respuesta sale solo de tu documento, tu bitácora de hoy y ayer y tu cuenta, así que escribe eventos claros (qué viste, qué decidiste y por qué).
 
 ## 6. Tus operaciones: `trades/<id>`
 
