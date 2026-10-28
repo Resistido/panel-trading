@@ -434,9 +434,12 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     const st = await txt(pg, '#diarioStats'), li = await txt(pg, '#diarioLista');
     ok('Diario Práctica: muestra las de práctica con sus totales', /Operaciones2/.test(st) && /0 ganadas · 2 perdidas/.test(st) && /−\$27,00|−\$27,0/.test(li) && /NVDA/.test(li) && /MU/.test(li) && (await txt(pg, '#h-cerradas')) === 'Operaciones de práctica cerradas', [st, li.slice(0, 200)]);
     ok('Diario Práctica: cada una con el chip PRÁCTICA', (await pg.$$('#diarioLista .tr .chip.prac')).length === 2, null);
-    ok('Diario Práctica: la revisión con Claude (que es de lo real) no se muestra', !(await pg.isVisible('#revisionBox')), null);
+    // Desde v3.7 la revisión vive en la parte Revisión del Diario: se mira ahí (en Operaciones no se ve nunca).
+    await pg.click('label[for="d-p-rev"]');
+    ok('Diario Práctica: la revisión con Claude (que es de lo real) no se muestra', !(await pg.isVisible('#revisionBox')) && await pg.isVisible('#rev-prac') && /solo tus operaciones reales/.test(await txt(pg, '#rev-prac')), await txt(pg, '#rev-prac'));
     await pg.click('label[for="d-real"]');
-    ok('Diario Real otra vez: la revisión vuelve', await pg.isVisible('#revisionBox') && /No hay operaciones cerradas/.test(await txt(pg, '#diarioLista')), null);
+    ok('Diario Real otra vez: la revisión vuelve', await pg.isVisible('#revisionBox') && !(await pg.isVisible('#rev-prac')) && /No hay operaciones cerradas/.test(await txt(pg, '#diarioLista')), null);
+    await pg.click('label[for="d-p-ops"]');
     const csv = await pg.evaluate(() => window.PanelTrading.csv());
     ok('CSV: columna "practica" al final (las demás no se mueven)', /;senal_id;nota;practica\r\n/.test(csv) && csv.split('\r\n').slice(1).every(l => /;si$/.test(l)), csv.split('\r\n').slice(0, 2));
     await ctx.close();

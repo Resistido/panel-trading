@@ -2,6 +2,8 @@
 // Protecciones (v3.5), en claro y oscuro a 390 px: Hoy con un dato macro cerca, con pausa activa y con aviso de fin de semana, y la calculadora de Señales bloqueada.
 // Señales y práctica (v3.6), en claro y oscuro a 390 px: Señales con tarjetas verde y ámbar, Señales en rojo (dato macro cerca, con los motivos ámbar debajo),
 // Abiertas con una operación de práctica y Diario en Práctica. El rojo es del momento (vale para todas las tarjetas a la vez): por eso va en su propia captura.
+// Diario en tres partes (v3.7), en claro y oscuro a 390 px: Estadísticas con menos de 20 operaciones (con el aviso) y con más de 20 (sin aviso),
+// Estadísticas en Práctica y Revisión con dos revisiones guardadas (la anterior abierta). Datos de datos-estadisticas.js.
 // Uso: node capturas-revision.js <carpeta> [archivo]. Guarda los PNG en <carpeta>/revision-visual/.
 // Usa el simulador de test-panel.js, un reloj fijo (miércoles 14-oct-2026, 11:05 en Nueva York) y datos inventados.
 const { chromium } = require('playwright');
@@ -14,6 +16,7 @@ const suite = fs.readFileSync(path.join(__dirname, 'test-panel.js'), 'utf8');
 const MOCK = suite.slice(suite.indexOf('const MOCK = `') + 'const MOCK = `'.length, suite.indexOf('})();`;') + '})();'.length);
 const { datosSemana, AHORA, NY } = require('./datos-tablero.js');
 const { adelantar } = require('./reloj-pruebas.js'); // saltos de reloj sin la carrera del reloj falso (ver el archivo)
+const DE = require('./datos-estadisticas.js');
 const BO = (m, d, h, mi) => Date.UTC(2026, m - 1, d, h + 4, mi); // Bolivia: UTC−4 todo el año
 // Una pérdida chica cerrada hoy a las 10:50: con la de MU (10:15) son dos seguidas → pausa hasta las 11:20.
 // Tres señales: NVDA cumple (verde), MU tiene el TP1 en 1:1,2 (ámbar) y AMD no dice el nivel de riesgo (ámbar).
@@ -140,6 +143,37 @@ fs.mkdirSync(salida, { recursive: true });
       await c.pg.click('#t-operar'); await c.pg.click('#btnEjemplo');
       await c.pg.check('#chk-horario'); await c.pg.check('#chk-stop');
     }
+    for (const t of ['claro', 'oscuro']) {
+      await tema(c.pg, t);
+      await completa(c.pg, 390, path.join(salida, '390-' + t + '-' + nombre + '.png'));
+    }
+    await c.ctx.close();
+  }
+  // Diario (v3.7): Estadísticas y Revisión, solo con los datos de datos-estadisticas.js (sin los de la semana del tablero).
+  const prepararDiario = async (trades, revisiones = []) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 860 }, deviceScaleFactor: 2 });
+    await ctx.addInitScript(MOCK);
+    const pg = await ctx.newPage();
+    pg.on('pageerror', e => errores.push(e.message));
+    await pg.clock.install({ time: AHORA });
+    await pg.goto('file://' + pagina);
+    await pg.waitForFunction(() => document.getElementById('v-title').textContent !== 'Cargando tus operaciones…', null, { timeout: 15000 });
+    await pg.evaluate(async ([tr, rv]) => { const db = await window.claude.use('db'); for (const [id, d] of tr) await db.collection('trades').doc(id).set(d); for (const [id, d] of rv) await db.collection('revisiones').doc(id).set(d); }, [trades, revisiones]);
+    await pg.evaluate(() => new Promise(r => setTimeout(r, 0))); // después de todos los avisos del simulador
+    await pg.evaluate(() => document.fonts && document.fonts.ready);
+    await pg.click('#t-diario');
+    return { ctx, pg };
+  };
+  const vistasDiario = [
+    ['estadisticas-pocas', DE.semanaEjemplo().concat(DE.practicaEjemplo()), [], 'est', 'd-sem', 'd-real'],
+    ['estadisticas-mas20', DE.mesEjemplo(), [], 'est', 'd-mes', 'd-real'],
+    ['estadisticas-practica', DE.semanaEjemplo().concat(DE.practicaEjemplo()), [], 'est', 'd-sem', 'd-prac'],
+    ['revision', DE.semanaEjemplo(), DE.revisionesEjemplo(), 'rev', 'd-sem', 'd-real']
+  ];
+  for (const [nombre, trades, revisiones, parte, per, modo] of vistasDiario) {
+    const c = await prepararDiario(trades, revisiones);
+    await c.pg.click('label[for="d-p-' + parte + '"]'); await c.pg.click('label[for="' + per + '"]'); await c.pg.click('label[for="' + modo + '"]');
+    await c.pg.evaluate(() => { document.getElementById('estDetalle').open = true; const d = document.querySelector('#revAnteriores details.rev'); if (d) d.open = true; });
     for (const t of ['claro', 'oscuro']) {
       await tema(c.pg, t);
       await completa(c.pg, 390, path.join(salida, '390-' + t + '-' + nombre + '.png'));
