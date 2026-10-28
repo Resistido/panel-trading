@@ -1,5 +1,7 @@
-// Capturas para revisión visual: las cinco pestañas en claro y oscuro a 390 px, Capturas en modo "Ya estoy dentro" con su bloque de acción, y Hoy a 1280 px.
-// Protecciones (v3.5), en claro y oscuro a 390 px: Hoy con un dato macro cerca, con pausa activa y con aviso de fin de semana, y Operar bloqueada.
+// Capturas para revisión visual: las cinco pestañas en claro y oscuro a 390 px, Buscar en modo "Ya estoy dentro" con su bloque de acción, y Hoy a 1280 px.
+// Protecciones (v3.5), en claro y oscuro a 390 px: Hoy con un dato macro cerca, con pausa activa y con aviso de fin de semana, y la calculadora de Señales bloqueada.
+// Señales y práctica (v3.6), en claro y oscuro a 390 px: Señales con tarjetas verde y ámbar, Señales en rojo (dato macro cerca, con los motivos ámbar debajo),
+// Abiertas con una operación de práctica y Diario en Práctica. El rojo es del momento (vale para todas las tarjetas a la vez): por eso va en su propia captura.
 // Uso: node capturas-revision.js <carpeta> [archivo]. Guarda los PNG en <carpeta>/revision-visual/.
 // Usa el simulador de test-panel.js, un reloj fijo (miércoles 14-oct-2026, 11:05 en Nueva York) y datos inventados.
 const { chromium } = require('playwright');
@@ -13,6 +15,13 @@ const MOCK = suite.slice(suite.indexOf('const MOCK = `') + 'const MOCK = `'.leng
 const { datosSemana, AHORA, NY } = require('./datos-tablero.js');
 const BO = (m, d, h, mi) => Date.UTC(2026, m - 1, d, h + 4, mi); // Bolivia: UTC−4 todo el año
 // Una pérdida chica cerrada hoy a las 10:50: con la de MU (10:15) son dos seguidas → pausa hasta las 11:20.
+// Tres señales: NVDA cumple (verde), MU tiene el TP1 en 1:1,2 (ámbar) y AMD no dice el nivel de riesgo (ámbar).
+const REG = (activo, dir, e, s1, t1, t2, nivel) => 'REGISTRO: 14/10/2026 | ' + activo + ' | ' + dir + ' | ' + e + ' | ' + s1 + ' | ' + e + ' | ' + t1 + ' | ' + t2 + ' | 27 | 120 | ' + nivel;
+const SENALES = 'PRE-APERTURA\n' + REG('NVDA', 'compra', '182,40', '180,90', '184,90', '186,20', 'Estándar') + '\n\nRADAR\n' + REG('MU', 'venta corta', '248,60', '250,10', '246,80', '244,10', 'Moderado') + '\n\n' + REG('AMD', 'compra', '214,20', '212,70', '216,90', '218,40', '');
+// Dos prácticas cerradas hoy (una ganancia y una pérdida) para el Diario en Práctica.
+const practica = (id, activo, pnl, h) => [id, { activo, dir: 'compra', entrada: 100, entradaPlan: 100, sl1: 99, sl2: 100, tp1: 101.5, tp2: 103, nivel: 27, nivelEf: 27, d: 1, unidades: 27, unidadesAbiertas: 0, riesgoInicial: 27, stopActual: 99,
+  estado: 'cerrada', ts: BO(10, 14, h, 0), parciales: [], movimientos: [], reglasRotas: [], nota: '', origen: 'Radar', fuente: 'ChatGPT', tipo: 'limite', tipoActivo: 'Tecnología', seguridad: null, practica: true,
+  cierre: { ts: BO(10, 14, h, 40), precio: 100 + pnl / 27, unidades: 27, pnl, motivo: pnl < 0 ? 'SL1' : 'TP2' }, pnl, r: pnl / 27, plan: 'si' }];
 const perdida = ['t-pausa', { activo: 'AMD', dir: 'compra', entrada: 160, entradaPlan: 160, sl1: 159, sl2: 160, tp1: 162, tp2: 164, nivel: 10, nivelEf: 10, d: 1, unidades: 8, unidadesAbiertas: 0, riesgoInicial: 8, stopActual: 159,
   estado: 'cerrada', ts: BO(10, 14, 10, 30), parciales: [], movimientos: [], reglasRotas: [], nota: '', origen: 'Radar', tipo: 'limite', tipoActivo: 'Tecnología', seguridad: null,
   cierre: { ts: BO(10, 14, 10, 50), precio: 159, unidades: 8, pnl: -8, motivo: 'SL1' }, pnl: -8, r: -1, plan: 'si' }];
@@ -65,30 +74,64 @@ fs.mkdirSync(salida, { recursive: true });
     await pg.waitForFunction(() => !document.getElementById('ge-resultado').hidden && document.querySelector('#ge-resultado .accion'), null, { timeout: 10000 });
   };
   const tema = async (pg, t) => { await pg.click('label[for="tema-' + t + '"]'); await pg.waitForTimeout(80); };
+  // Pega las tres señales en la bandeja y deja pasar unos minutos para que las tarjetas digan su antigüedad.
+  const pegarSenales = async (pg, minutos = 6) => {
+    await pg.click('#t-operar');
+    await pg.fill('#f-pegar', SENALES);
+    await pg.click('#btnPegar');
+    await pg.waitForFunction(() => document.querySelectorAll('#sen-lista .sen').length === 3);
+    if (minutos) await pg.clock.fastForward(minutos * 60000);
+    await pg.waitForTimeout(150);
+  };
+  const nombre = (tab) => tab === 'analizar' ? 'buscar' : tab === 'operar' ? 'senales' : tab;
 
   const { ctx, pg } = await preparar(390);
+  await pegarSenales(pg);
   for (const t of ['claro', 'oscuro']) {
     await tema(pg, t);
     for (const tab of ['hoy', 'analizar', 'operar', 'abiertas', 'diario']) {
       await pg.click('#t-' + tab);
-      if (tab === 'operar') await pg.click('#btnEjemplo');
       await pg.waitForTimeout(80);
-      await completa(pg, 390, path.join(salida, '390-' + t + '-' + (tab === 'analizar' ? 'capturas' : tab) + '.png'));
+      await completa(pg, 390, path.join(salida, '390-' + t + '-' + nombre(tab) + '.png'));
     }
   }
-  // Capturas: "Ya estoy dentro" con la propuesta de la IA, en los dos temas.
+  // Buscar: "Ya estoy dentro" con la propuesta de la IA, en los dos temas.
   await dentro(pg);
   for (const t of ['claro', 'oscuro']) {
     await tema(pg, t);
-    await completa(pg, 390, path.join(salida, '390-' + t + '-capturas-dentro.png'));
+    await completa(pg, 390, path.join(salida, '390-' + t + '-buscar-dentro.png'));
+  }
+  // Práctica: se practica NVDA desde su tarjeta (Abiertas) y el Diario muestra dos prácticas cerradas.
+  await pg.click('#t-operar');
+  await pg.click('#sen-lista .sen:has(.sen-h strong:text-is("NVDA")) [data-sen-prac]');
+  await pg.waitForFunction(() => /Practicando NVDA/.test(document.getElementById('sen-msg').textContent));
+  await pg.evaluate(async (docs) => { const db = await window.claude.use('db'); for (const [id, d] of docs) await db.collection('trades').doc(id).set(d); }, [practica('p-tsla', 'TSLA', 40.5, 9), practica('p-meta', 'META', -27, 10)]);
+  await pg.waitForTimeout(300);
+  for (const t of ['claro', 'oscuro']) {
+    await tema(pg, t);
+    await pg.click('#t-abiertas');
+    await completa(pg, 390, path.join(salida, '390-' + t + '-abiertas-practica.png'));
+    await pg.click('#t-diario'); await pg.click('label[for="d-prac"]'); await pg.waitForTimeout(80);
+    await completa(pg, 390, path.join(salida, '390-' + t + '-diario-practica.png'));
+    await pg.click('label[for="d-real"]');
   }
   await ctx.close();
+  // Señales en rojo: con un dato macro a 15 minutos, ninguna se puede operar; MU muestra además su motivo ámbar.
+  {
+    const c = await preparar(390, { eventos: [['e-cpi', { ts: BO(10, 14, 11, 20), nombre: 'CPI' }]] });
+    await pegarSenales(c.pg, 0);
+    for (const t of ['claro', 'oscuro']) {
+      await tema(c.pg, t);
+      await completa(c.pg, 390, path.join(salida, '390-' + t + '-senales-rojo.png'));
+    }
+    await c.ctx.close();
+  }
   // Protecciones: Hoy con un dato macro cerca, con pausa y con aviso de fin de semana; Operar bloqueada por el dato macro.
   const casos = [
     ['hoy-macro', { eventos: [['e-cpi', { ts: BO(10, 14, 11, 20), nombre: 'CPI' }], ['e-fed', { ts: BO(10, 14, 14, 0), nombre: 'Fed (actas)' }]] }, 'hoy'],
     ['hoy-pausa', { trades: [perdida] }, 'hoy'],
     ['hoy-finde', { hora: NY(10, 16, 11, 5) }, 'hoy'],
-    ['operar-bloqueada', { eventos: [['e-cpi', { ts: BO(10, 14, 11, 20), nombre: 'CPI' }]] }, 'operar']
+    ['senales-bloqueada', { eventos: [['e-cpi', { ts: BO(10, 14, 11, 20), nombre: 'CPI' }]] }, 'operar']
   ];
   for (const [nombre, opciones, tab] of casos) {
     const c = await preparar(390, opciones);
