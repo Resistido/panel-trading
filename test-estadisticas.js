@@ -414,7 +414,7 @@ const H = D.H;
   ok('portabilidad: se reutiliza lo que había (estadisticas, agrupar y VER_POR extendidos, no copiados)', (js.match(/function estadisticas\(/g) || []).length === 1 && (js.match(/function agrupar\(/g) || []).length === 1 && (js.match(/var VER_POR = /g) || []).length === 1, null);
   const sinComentarios = js.replace(/\/\*[\s\S]*?\*\//g, '');
   ok('portabilidad: sin llamadas nuevas a claude.use ni SAMPLE', (sinComentarios.match(/claude\.use\(/g) || []).length === 4 && (sinComentarios.match(/SAMPLE(\.json)?\(/g) || []).length === 4, [(sinComentarios.match(/claude\.use\(/g) || []).length, (sinComentarios.match(/SAMPLE(\.json)?\(/g) || []).length]);
-  ok('pie: Centinela · v3.7', /Centinela · v3\.7/.test(html), null);
+  ok('pie: Centinela · v3.8 (la versión actual)', /Centinela · v3\.8/.test(html), null);
 
   const fails = results.filter(r => !r.pass);
   fs.writeFileSync(path.join(dir, 'resultado-estadisticas.json'), JSON.stringify({ fecha: new Date().toISOString(), archivo, total: results.length, fallas: fails.length, erroresPagina: errors, casos: results.map(r => ({ caso: r.name, paso: r.pass })) }, null, 2));

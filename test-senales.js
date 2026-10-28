@@ -428,7 +428,8 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     ok('práctica fuera de la curva de la semana (pantalla)', /0 cerradas/.test(await txt(pg, '#tb-sem')) && /\+0,0 R|0,0 R/.test(await txt(pg, '#tb-sem')), await txt(pg, '#tb-sem'));
     // Diario: Real | Práctica
     await pg.click('#t-diario');
-    ok('Diario: selector Real | Práctica, Real por defecto', await pg.isChecked('#d-real') && (await pg.$$eval('input[name="d-modo"] + label', l => l.map(x => x.textContent))).join() === 'Real,Práctica', null);
+    // Desde v3.8 el selector suma Agente (las operaciones de los agentes, separadas de las reales y de las prácticas).
+    ok('Diario: selector Real | Práctica | Agente, Real por defecto', await pg.isChecked('#d-real') && (await pg.$$eval('input[name="d-modo"] + label', l => l.map(x => x.textContent))).join() === 'Real,Práctica,Agente', null);
     ok('Diario Real: sin las de práctica (listas y números)', /No hay operaciones cerradas esta semana/.test(await txt(pg, '#diarioLista')) && !/NVDA/.test(await txt(pg, '#diarioLista')) && !/Operaciones/.test(await txt(pg, '#diarioStats')), await txt(pg, '#diarioStats'));
     await pg.click('label[for="d-prac"]');
     const st = await txt(pg, '#diarioStats'), li = await txt(pg, '#diarioLista');
