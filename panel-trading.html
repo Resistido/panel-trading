@@ -548,6 +548,104 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
 /* Práctica: chip PRÁCTICA (texto, no solo color) y borde punteado en Abiertas. */
 .chip.prac{background:transparent;color:var(--fg);border:1px dashed var(--line-strong);text-transform:uppercase;letter-spacing:.1em}
 .pos.practica{border-style:dashed;border-color:var(--line-strong)}
+
+/* Agentes (v3.8): una tarjeta por agente con su avatar, su estado (icono y palabra, nunca solo color), su cuenta simulada y su bitácora.
+   El aviso rojo de ajustes cambiados fuera de Centinela va arriba de Hoy. */
+.aviso-r{display:grid;gap:var(--s-2);padding:var(--s-3);border-radius:var(--r-lg);background:var(--loss-bg);border:1px solid var(--accent);color:var(--fg);min-width:0}
+.aviso-r p{font-size:var(--t-md);overflow-wrap:anywhere}
+.ar-tag{display:inline-flex;align-items:center;gap:6px;justify-self:start;padding:3px 10px;border-radius:var(--r-sm);background:var(--brand-fill);color:var(--brand-ink);font-family:var(--f-display);font-weight:700;font-size:var(--t-sm);letter-spacing:.1em;text-transform:uppercase}
+.ar-tag .ico{width:16px;height:16px}
+.ag-lista{display:grid;gap:var(--s-3);grid-template-columns:minmax(0,1fr)}
+@media (min-width:700px){.ag-lista{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
+.ag{gap:var(--s-3)}
+.ag-h{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--s-3);align-items:center;min-width:0}
+.ag-nom{display:grid;gap:2px;min-width:0}
+.ag-nom strong{font-family:var(--f-display);font-weight:700;font-size:var(--t-lg);letter-spacing:.04em;line-height:1.15;overflow-wrap:anywhere}
+.ag-nom span{font-size:var(--t-sm);color:var(--muted);overflow-wrap:anywhere}
+.ag-est{display:inline-flex;align-items:center;gap:6px;justify-self:start;max-width:100%;padding:4px 10px;border-radius:var(--r-full);border:1px solid transparent;background:var(--surface-2);color:var(--fg);font-family:var(--f-display);font-weight:700;font-size:var(--t-sm);letter-spacing:.06em;line-height:1.25}
+.ag-est span{overflow-wrap:anywhere;min-width:0}
+.ag-est[data-tono="alerta"]{background:var(--warn-bg);color:var(--warn)}
+.ag-est[data-tono="error"]{background:var(--loss-bg);color:var(--loss)}
+.ag-est[data-tono="pausa"]{background:transparent;border:1px dashed var(--line-strong)}
+.ag-frase{font-size:.95rem;line-height:1.45;overflow-wrap:anywhere}
+.ag-aviso{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--s-2);align-items:start;padding:var(--s-2) var(--s-3);border-radius:var(--r-md);font-size:var(--t-sm);line-height:1.4;min-width:0}
+.ag-aviso>span{overflow-wrap:anywhere;min-width:0}
+.ag-aviso>.ico{margin-top:.1em}
+.ag-aviso[data-luz="ambar"]{background:var(--warn-bg);border:1px solid var(--warn);color:var(--fg)}
+.ag-aviso[data-luz="ambar"]>.ico{color:var(--warn)}
+.ag-aviso[data-luz="rojo"]{background:var(--brand-fill);color:var(--brand-ink)}
+.ag-dat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0}
+.ag-dat div{min-width:0}
+.ag-dat dt{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ag-dat dd{margin:0;font-family:var(--f-data);font-weight:600;font-size:.95rem;overflow-wrap:anywhere}
+.ag-dat dd.big{font-size:1.2rem;font-weight:700}
+.ag-dat dd small{display:block;font-size:.72rem;color:var(--muted);font-weight:400}
+.ag-cont{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:var(--t-sm);min-width:0}
+.ag-cont .chip{font-size:.8rem;padding:3px 9px}
+.chip.fl{white-space:normal;overflow-wrap:anywhere}
+.ag-acts{display:flex;flex-wrap:wrap;gap:var(--s-2)}
+.ag-acts button{flex:1 1 auto}
+.ag-conf{display:grid;gap:var(--s-2);padding:var(--s-3);border-radius:var(--r-md);background:var(--surface-2)}
+.ag-conf .row button{flex:1 1 auto}
+.ag-diario{display:grid;gap:var(--s-2);min-width:0}
+.ag-diario[hidden],#d-ag-sel-box[hidden]{display:none}
+.ag-ajustes{display:grid;gap:12px;border-top:1px solid var(--line);padding-top:12px;min-width:0}
+.tr.fuera{border-color:var(--accent);border-style:dashed}
+/* Bitácora: línea de tiempo de hoy y ayer, la más nueva arriba, con icono y palabra por tipo */
+details.ag-bit{border-top:1px solid var(--line);min-width:0}
+details.ag-bit>summary{cursor:pointer;min-height:var(--tap);display:flex;gap:10px;align-items:center;font-weight:700;list-style:none;color:var(--accent);letter-spacing:.04em}
+details.ag-bit>summary::-webkit-details-marker{display:none}
+details.ag-bit>summary::after{content:"";flex:none;width:8px;height:8px;margin:0 4px 4px auto;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg)}
+details.ag-bit[open]>summary::after{transform:rotate(-135deg);margin-bottom:-4px}
+details.ag-bit>summary small{font-weight:500;color:var(--muted);font-size:.78rem;font-family:var(--f-data);letter-spacing:0}
+details.ag-bit[open]{display:grid;gap:var(--s-3)}
+.bit-dia{display:grid;gap:4px;min-width:0}
+.bit-dia h4{margin:0;font-family:var(--f-display);font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+.bit-lista{list-style:none;margin:0;padding:0;display:grid}
+.bit-ev{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px var(--s-2);padding:var(--s-2) 0;border-bottom:1px solid var(--line);min-width:0}
+.bit-ev:last-child{border-bottom:0}
+.bit-ev>.ico{grid-row:span 2;margin-top:.2em;color:var(--fg)}
+.bit-ev[data-tipo="error"]>.ico{color:var(--loss)}
+.bit-ev[data-tipo="riesgo"]>.ico{color:var(--warn)}
+.bit-t{display:flex;flex-wrap:wrap;gap:2px 8px;align-items:center;font-size:var(--t-sm);min-width:0}
+.bit-t time,.bit-t .bit-c{font-family:var(--f-data);color:var(--muted)}
+.bit-ev>p:last-child{font-size:.92rem;overflow-wrap:anywhere;min-width:0}
+/* Avatares: personajes originales en SVG (trazo del color del texto, detalle en rojo de marca). Cada estado tiene una animación sutil;
+   con prefers-reduced-motion no se mueve nada (los ojos cerrados, el "zzz" o el "!" igual se ven). */
+.av{width:56px;height:56px;flex:none;display:block;border-radius:var(--r-lg);background:var(--surface-2);border:1px solid var(--line)}
+.av svg{width:100%;height:100%;display:block;overflow:visible}
+.av .c{fill:var(--surface);stroke:var(--fg);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
+.av .l{fill:none;stroke:var(--fg);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.av .lv{fill:none;stroke:var(--surface);stroke-width:2.2;stroke-linecap:round}
+.av .o{fill:var(--fg)}
+.av .k{fill:var(--fg)}
+.av .ok{fill:var(--surface)}
+.av .m{fill:var(--accent)}
+.av .z{fill:var(--fg);font-family:var(--f-data);font-weight:700;font-size:11px}
+.av .bang{fill:none;stroke:var(--brand-ink);stroke-width:2.4;stroke-linecap:round}
+.av .anillo{fill:none;stroke:var(--warn);stroke-width:2;stroke-dasharray:5 4}
+.av svg *{transform-box:fill-box;transform-origin:center}
+.av-cerrados,.av-zzz,.av-error,.av-scan,.av-anillo{display:none}
+.av[data-estado="pausado"] .av-ojos,.av[data-estado="inactivo"] .av-ojos{display:none}
+.av[data-estado="pausado"] .av-cerrados,.av[data-estado="inactivo"] .av-cerrados,.av[data-estado="pausado"] .av-zzz,.av[data-estado="error"] .av-error,.av[data-estado="analizando"] .av-scan,.av[data-estado="riesgo"] .av-anillo{display:inline}
+.av-ini{display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:1.5rem;color:var(--fg)}
+@media (prefers-reduced-motion: no-preference){
+  @keyframes av-buscar{0%,100%{transform:translateX(0)}30%{transform:translateX(-2.5px)}70%{transform:translateX(2.5px)}}
+  @keyframes av-escanear{0%{transform:translateY(0);opacity:0}15%,85%{opacity:1}100%{transform:translateY(20px);opacity:0}}
+  @keyframes av-parpadeo{0%,90%,100%{transform:scaleY(1)}95%{transform:scaleY(.15)}}
+  @keyframes av-asentir{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
+  @keyframes av-latido{0%,100%{opacity:.35}50%{opacity:1}}
+  @keyframes av-zzz{0%{opacity:0;transform:translate(0,3px)}30%{opacity:1}100%{opacity:0;transform:translate(3px,-6px)}}
+  @keyframes av-temblor{0%,84%,100%{transform:translateX(0)}88%{transform:translateX(-1.5px)}92%{transform:translateX(1.5px)}96%{transform:translateX(-1px)}}
+  .av[data-estado="investigando"] .av-ojos{animation:av-buscar 3.2s ease-in-out infinite}
+  .av[data-estado="analizando"] .av-scan{animation:av-escanear 2.4s linear infinite}
+  .av[data-estado="esperando"] .av-ojos{animation:av-parpadeo 4.5s ease-in-out infinite}
+  .av[data-estado="registrando"] .av-todo{animation:av-asentir 1.8s ease-in-out infinite}
+  .av[data-estado="riesgo"] .av-anillo{animation:av-latido 1.8s ease-in-out infinite}
+  .av[data-estado="pausado"] .av-zzz text{animation:av-zzz 3s ease-out infinite}
+  .av[data-estado="pausado"] .av-zzz text+text{animation-delay:1.5s}
+  .av[data-estado="error"] .av-todo{animation:av-temblor 3.5s ease-in-out infinite}
+}
 </style>
 
 <div class="wrap">
@@ -585,6 +683,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     <!-- HOY -->
     <section data-panel="hoy" id="p-hoy" role="tabpanel" aria-labelledby="h-estado">
       <h2 id="h-estado">Hoy <span class="fecha" id="fecha-hoy"></span></h2>
+      <div class="prot" id="hoy-alertas"></div>
       <div class="tablero" id="tablero">
         <div class="tb-col">
           <div class="verdict" id="verdict" data-luz="" role="status">
@@ -634,6 +733,12 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
             <div id="tb-sem"><p class="empty">Cargando…</p></div>
           </div>
         </div>
+      </div>
+      <!-- AGENTES (v3.8): viven fuera de Centinela; acá se ven, se auditan y se pausan -->
+      <div class="tb-bloque ag-box" id="agentes-box">
+        <div class="tb-h"><h3 id="h-agentes">Agentes</h3><span>cuenta simulada · sin dinero real</span></div>
+        <div class="ag-lista" id="ag-lista"><p class="empty">Cargando…</p></div>
+        <p class="vt-nota">Centinela no ejecuta agentes: muestra lo que hicieron, revisa cada operación con los límites de su cuenta simulada (reglas fijas, sin IA) y te deja pausarlos.</p>
       </div>
       <div class="row">
         <button type="button" id="btnEstado">Copiar estado para ChatGPT</button>
@@ -792,14 +897,20 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
         <input type="radio" name="d-parte" id="d-p-est" value="estadisticas"><label for="d-p-est">Estadísticas</label>
         <input type="radio" name="d-parte" id="d-p-rev" value="revision"><label for="d-p-rev">Revisión</label>
       </div>
-      <div class="seg" role="radiogroup" aria-label="Operaciones reales o de práctica">
+      <div class="seg" role="radiogroup" aria-label="Operaciones reales, de práctica o del agente">
         <input type="radio" name="d-modo" id="d-real" value="real" checked><label for="d-real">Real</label>
         <input type="radio" name="d-modo" id="d-prac" value="practica"><label for="d-prac">Práctica</label>
+        <input type="radio" name="d-modo" id="d-agente" value="agente"><label for="d-agente">Agente</label>
       </div>
       <div class="seg" role="radiogroup" aria-label="Período del diario">
         <input type="radio" name="d-per" id="d-sem" value="semana" checked><label for="d-sem">Esta semana</label>
         <input type="radio" name="d-per" id="d-mes" value="mes"><label for="d-mes">Este mes</label>
         <input type="radio" name="d-per" id="d-todo" value="todo"><label for="d-todo">Todo</label>
+      </div>
+      <!-- Agente (v3.8): qué agente mirar (si hay más de uno) y el contador de fuera de límites, para las tres partes -->
+      <div class="ag-diario" id="d-ag-box" hidden>
+        <div class="field" id="d-ag-sel-box" hidden><label for="d-ag-sel">Agente</label><select id="d-ag-sel"></select></div>
+        <p class="ag-cont" id="d-ag-fuera"></p>
       </div>
       <!-- Operaciones: la lista, el CSV, el respaldo, Comprobar señales y Reglas y ajustes -->
       <div class="d-parte" id="d-operaciones">
@@ -845,6 +956,25 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
           <button type="button" class="ghost" id="btnResetCfg">Volver a las reglas del 12-oct</button>
         </div>
         <p class="hint" id="cfgMsg" role="status"></p>
+        <!-- Cuenta simulada de los agentes (v3.8): se guarda aparte, en config/agente -->
+        <div class="ag-ajustes" id="ag-ajustes">
+          <h3>Cuenta simulada de los agentes</h3>
+          <p class="hint">Con estos límites Centinela revisa cada operación de un agente. Cada agente tiene su propia cuenta de dinero simulado: no hay dinero real.</p>
+          <div class="fields">
+            <div class="field"><label for="sa-capital">Capital virtual ($)</label><input type="text" class="num" inputmode="decimal" id="sa-capital"></div>
+            <div class="field"><label for="sa-riesgoOp">Riesgo por operación ($)</label><input type="text" class="num" inputmode="decimal" id="sa-riesgoOp"></div>
+            <div class="field"><label for="sa-perdidaDia">Pérdida máxima del día ($)</label><input type="text" class="num" inputmode="decimal" id="sa-perdidaDia"></div>
+            <div class="field"><label for="sa-perdidaMax">Pérdida acumulada máxima ($)</label><input type="text" class="num" inputmode="decimal" id="sa-perdidaMax"></div>
+            <div class="field"><label for="sa-maxAbiertas">Máximo de abiertas</label><input type="text" class="num" inputmode="decimal" id="sa-maxAbiertas"></div>
+            <div class="field"><label for="sa-rrMin">Beneficio/riesgo mínimo</label><input type="text" class="num" inputmode="decimal" id="sa-rrMin"></div>
+          </div>
+          <p class="hint">Sin apalancamiento: una posición nunca puede valer más que el saldo virtual disponible (esta regla no se cambia). La pérdida del día y la acumulada suman lo perdido y el riesgo abierto. Al llegar a la pérdida acumulada máxima, el experimento se detiene.</p>
+          <div class="row">
+            <button type="button" class="primary" id="btnGuardarAg">Guardar límites del agente</button>
+            <button type="button" class="ghost" id="btnResetAg">Volver a los valores de partida</button>
+          </div>
+          <p class="hint" id="agCfgMsg" role="status"></p>
+        </div>
       </details>
       </div>
 
@@ -856,7 +986,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
 
       <!-- Revisión: la revisión con Claude del período elegido y las anteriores, por semana -->
       <div class="d-parte" id="d-revision" hidden>
-        <div class="nota-p" id="rev-prac" hidden><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l9 16H3z"/><path d="M12 10v4.2M12 17.2v.01"/></svg><span>La revisión con Claude lee solo tus operaciones reales: las de práctica no se mezclan. Elegí <b>Real</b> para pedirla o ver las anteriores.</span></div>
+        <div class="nota-p" id="rev-prac" hidden><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l9 16H3z"/><path d="M12 10v4.2M12 17.2v.01"/></svg><span id="rev-prac-txt">La revisión con Claude lee solo tus operaciones reales: las de práctica no se mezclan. Elegí <b>Real</b> para pedirla o ver las anteriores.</span></div>
         <div class="card" id="revisionBox">
           <div class="row between"><h3>Revisión con Claude</h3><button type="button" class="small" id="btnRevision">Pedir revisión</button></div>
           <p class="meta-line" id="revisionFecha"></p>
@@ -868,7 +998,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   </main>
 
   <footer>
-    <p class="pie-marca"><span aria-hidden="true">/</span>Centinela · v3.7</p>
+    <p class="pie-marca"><span aria-hidden="true">/</span>Centinela · v3.8</p>
     <p>Centinela calcula con tus reglas, pero no ve tu cuenta de Quantfury. Antes de entrar, mirá siempre el precio allí.</p>
     <p>El nivel de seguridad mide qué tan bien cumple el setup tus criterios; no es la probabilidad de ganar. Un gap o un deslizamiento puede ejecutar el stop peor de lo previsto.</p>
   </footer>
@@ -902,8 +1032,13 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     ui: { panel: null, per: 'semana', confirmYa: false, cfgDirty: false, confirmReset: false, err: {}, motivo: {}, plan: {}, senalId: null, seguridad: null, fuente: null,
       senFiltro: 'nuevas', senDescartar: null, senBusy: {}, senLeyendo: false, diarioModo: 'real', diarioParte: 'operaciones', revAbiertas: {},
       tab: 'hoy', tipoAuto: true, verPor: 'nivel', analisis: null, analisisId: null, analizando: false, chkTarget: null, chkBusy: {}, revisando: false, thumbUrls: [],
-      modoCap: 'entrada', analizandoQue: 'entrada', gePos: null, gestion: null, precios: {}, tema: 'auto', quitarEvento: null, senBorrar: null } };
+      modoCap: 'entrada', analizandoQue: 'entrada', gePos: null, gestion: null, precios: {}, tema: 'auto', quitarEvento: null, senBorrar: null,
+      agConfirm: null, agBusy: {}, agMsg: {}, bitAbiertas: {}, diarioAgente: null, cfgAgDirty: false, confirmResetAg: false } };
+  /* Agentes (v3.8): sus documentos, su bitácora, los límites de su cuenta (config/agente), el sello de los ajustes y las cuentas calculadas en cada dibujo. */
+  S.agentes = []; S.agentesError = false; S.bitacora = []; S.cfgAg = null; S.ag = null; // S.cfgAg se llena al arrancar (normCfgAgente)
+  S.ajustes = { main: { previo: undefined, visto: false, alerta: null }, agente: { previo: undefined, visto: false, alerta: null } };
   var TRADES = null, CFGDOC = null, SENALES = null, RESUMENES = null, REVISIONES = null, EVENTOS = null, SAMPLE = null, LIMITES = null, ARCHIVOS = [], CTL = null;
+  var AGENTES = null, BITACORA = null, CFGAGDOC = null, AGENTES_MAX = 20, BITACORA_DOCS = 60;
 
   /* ---------- Utilidades ---------- */
   function $(id) { return document.getElementById(id); }
@@ -1051,7 +1186,11 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   /* Operaciones de práctica (v3.6): nunca cuentan en presupuestos, semáforo, operaciones del día, margen, pausa tras rachas,
      curva de la semana, resultados reales del Diario ni en el estado que se copia para ChatGPT. */
   function esPractica(t) { return !!(t && t.practica === true); }
-  function soloReales(trades) { return (trades || []).filter(function (t) { return !esPractica(t); }); }
+  /* Operaciones de un agente (v3.8): cuenta 'agente' o con el id de un agente. Nunca son reales, aunque les falte practica: true
+     (esa falta la marca el guardián como forma incorrecta), y nunca se mezclan con las prácticas de Johannes. */
+  function esDeAgente(t) { return !!t && (t.cuenta === 'agente' || (t.agente != null && String(t.agente).trim() !== '')); }
+  function esPracticaPropia(t) { return esPractica(t) && !esDeAgente(t); }
+  function soloReales(trades) { return (trades || []).filter(function (t) { return !esPractica(t) && !esDeAgente(t); }); }
   function signo(t) { return t.dir === 'venta' ? -1 : 1; }
   function riesgoAbiertoDe(t) { return max0(signo(t) * (t.entrada - t.stopActual)) * t.unidadesAbiertas; }
   /* Cada salida (parcial o final) cuenta por separado, con su fecha: así una pérdida nunca se compensa con una ganancia. */
@@ -1220,7 +1359,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   /* Resultados de la semana: R acumulado operación por operación, en orden de cierre. */
   var CURVA_MIN = 3;
   function curvaResultados(cerradas) {
-    var lista = (cerradas || []).filter(function (t) { return t && !esPractica(t) && t.cierre && isNum(Number(t.cierre.ts)); })
+    var lista = (cerradas || []).filter(function (t) { return t && !esPractica(t) && !esDeAgente(t) && t.cierre && isNum(Number(t.cierre.ts)); })
       .slice().sort(function (a, b) { return Number(a.cierre.ts) - Number(b.cierre.ts); });
     var acum = 0, pnl = 0, puntos = lista.map(function (t) { var r = isNum(t.r) ? t.r : 0; acum += r; pnl += isNum(t.pnl) ? t.pnl : 0; return { ts: Number(t.cierre.ts), r: r, acum: round4(acum), activo: t.activo }; });
     return { n: lista.length, total: round4(acum), pnl: round2(pnl), puntos: puntos, pocos: lista.length < CURVA_MIN };
@@ -1523,7 +1662,8 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
 
   /* ---------- Bandeja de señales (funciones puras: no tocan la pantalla ni la plataforma) ---------- */
   /* Fuente de cada señal y operación. Los datos viejos sin fuente se leen como "Sin dato" (no se modifican). */
-  var FUENTES = ['ChatGPT', 'Claude', 'Propia', 'Otra'];
+  /* 'Agente' (v3.8): señales y operaciones que escriben los agentes externos (ver AGENTES.md). No está en el selector de Señales. */
+  var FUENTES = ['ChatGPT', 'Claude', 'Propia', 'Otra', 'Agente'];
   var DESCARTES = ['No me convence', 'Llegué tarde', 'Rompe reglas', 'Otro'];
   /* Una señal con más de SENAL_VIEJA_MIN minutos lo dice en su tarjeta. */
   var SENAL_VIEJA_MIN = 15;
@@ -1704,6 +1844,269 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     });
   }
 
+  /* ---------- Agentes (v3.8): funciones puras ----------
+     Los agentes viven fuera de Centinela (tareas programadas de Claude) y escriben en su base (contrato en AGENTES.md). Centinela no los ejecuta:
+     muestra lo que hicieron, revisa sus operaciones con reglas propias (nunca con IA) y deja pausarlos. Todo es simulado: no hay dinero real. */
+  /* Límites de la cuenta simulada de cada agente: valores de partida en un solo lugar (Johannes los cambia en Reglas y ajustes; se guardan en config/agente).
+     Sin apalancamiento no es un número que se pueda cambiar: una posición nunca vale más que el saldo virtual disponible. */
+  var AGENTE_DEF = { capital: 100, riesgoOp: 2, perdidaDia: 6, perdidaMax: 20, maxAbiertas: 3, rrMin: 1.5 };
+  var AGENTE_CAMPOS = ['capital', 'riesgoOp', 'perdidaDia', 'perdidaMax', 'maxAbiertas', 'rrMin'];
+  var AG_TOL = 0.005; // medio centavo de tolerancia por redondeo
+  var AG_FUTURO_MS = 5 * 60000; // una hora del agente hasta 5 min adelantada se acepta (relojes distintos); más, es forma incorrecta
+  function normCfgAgente(c) {
+    var o = clone(AGENTE_DEF);
+    if (c && typeof c === 'object') AGENTE_CAMPOS.forEach(function (k) { if (isNum(+c[k]) && +c[k] > 0) o[k] = +c[k]; });
+    o.maxAbiertas = Math.max(1, Math.floor(o.maxAbiertas));
+    return o;
+  }
+  /* Lo que se guarda desde Reglas y ajustes tiene que ser coherente: riesgo ≤ pérdida del día ≤ pérdida acumulada < capital. null si está bien. */
+  function errorCfgAgente(c) {
+    if (!c || AGENTE_CAMPOS.some(function (k) { return !(isNum(c[k]) && c[k] > 0); })) return 'Revisá los números: todos tienen que ser mayores a cero y con coma decimal.';
+    if (Math.floor(c.maxAbiertas) !== c.maxAbiertas) return 'El máximo de abiertas es un número entero (1, 2, 3…).';
+    if (c.riesgoOp > c.perdidaDia) return 'El riesgo por operación no puede ser mayor que la pérdida máxima del día.';
+    if (c.perdidaDia > c.perdidaMax) return 'La pérdida máxima del día no puede ser mayor que la pérdida acumulada máxima.';
+    if (c.perdidaMax >= c.capital) return 'La pérdida acumulada máxima tiene que ser menor que el capital virtual.';
+    return null;
+  }
+  /* Avatares: personajes originales dibujados a mano (AVATARES_SVG, en la parte de pantalla). Una clave desconocida no se cambia por otra: se muestra la inicial. */
+  var AVATARES = ['vigia', 'buho', 'lince', 'faro', 'cubo'];
+  /* El estado de un agente nunca depende solo del color: cada uno lleva palabra e icono. */
+  var ESTADOS_AGENTE = {
+    investigando: { palabra: 'Investigando', icono: 'lupa', tono: 'activo' },
+    analizando: { palabra: 'Analizando', icono: 'barras', tono: 'activo' },
+    esperando: { palabra: 'Esperando', icono: 'reloj', tono: 'calma' },
+    registrando: { palabra: 'Registrando', icono: 'lapiz', tono: 'activo' },
+    riesgo: { palabra: 'Revisando riesgo', icono: 'escudo', tono: 'alerta' },
+    pausado: { palabra: 'En pausa', icono: 'pausa', tono: 'pausa' },
+    error: { palabra: 'Con error', icono: 'alerta', tono: 'error' },
+    inactivo: { palabra: 'Inactivo', icono: 'apagado', tono: 'calma' }
+  };
+  /* Un documento de 'agentes' leído sin inventar: lo que falta queda vacío o en null. pausado solo vale si es exactamente true. */
+  function normAgente(id, x) {
+    x = x && typeof x === 'object' ? x : {};
+    var n = function (v) { var k = Number(v); return v != null && v !== '' && isNum(k) && k > 0 ? k : null; };
+    var s = function (v, max) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, max); };
+    return { id: String(id), nombre: s(x.nombre, 40) || String(id), rol: s(x.rol, 80), avatar: AVATARES.indexOf(x.avatar) >= 0 ? x.avatar : null, estado: typeof x.estado === 'string' ? x.estado : '',
+      texto: s(x.texto, 200), ultimaCorrida: n(x.ultimaCorrida), proximaCorrida: n(x.proximaCorrida), pausado: x.pausado === true, pausadoTs: n(x.pausadoTs) };
+  }
+  /* Lo que muestra la tarjeta. Si Johannes lo pausó, manda la pausa aunque el agente diga otra cosa. Un estado desconocido no se supone. */
+  function estadoAgente(a) {
+    if (a && a.pausado === true) return { clave: 'pausado', palabra: 'En pausa', icono: 'pausa', tono: 'pausa', porVos: true };
+    var k = a && Object.prototype.hasOwnProperty.call(ESTADOS_AGENTE, a.estado) ? a.estado : null;
+    if (!k) return { clave: 'desconocido', palabra: 'Estado sin dato', icono: 'regular', tono: 'calma', porVos: false };
+    return Object.assign({ clave: k, porVos: false }, ESTADOS_AGENTE[k]);
+  }
+  /* "10:40", "ayer 18:30", "mañana 09:00" o "lunes 12/10 10:40", en hora de Bolivia. */
+  function cuandoCorto(t, ahora) {
+    var d = claveDia(t), hoy = claveDia(ahora);
+    return (d === hoy ? '' : d === sumarDias(hoy, -1) ? 'ayer ' : d === sumarDias(hoy, 1) ? 'mañana ' : DIAS[diaSemana(d)] + ' ' + ddmm(t) + ' ') + hhmm(t, TZ_BO);
+  }
+  /* Sin noticias: la última corrida es más vieja que el doble de lo esperado (lo esperado: de la última corrida a la próxima que anunció el agente).
+     Sin esas dos horas no se sabe qué esperar: null (no se inventa). En pausa o con el experimento detenido no tiene que correr: null. */
+  function avisoSinNoticias(a, ts, detenido) {
+    if (!a || a.pausado === true || a.estado === 'pausado' || detenido) return null;
+    var u = a.ultimaCorrida, p = a.proximaCorrida;
+    if (!isNum(u) || !isNum(p) || !(p > u)) return null;
+    var esperado = p - u;
+    if (ts - u <= 2 * esperado) return null;
+    return { desde: u, esperado: esperado, texto: 'Sin noticias desde ' + cuandoCorto(u, ts) };
+  }
+
+  /* Bitácora: un documento por agente y por día de Bolivia (id <agente>-<AAAA-MM-DD>) con eventos: [...], así no se agota el límite de documentos de la base.
+     Cada día guarda como mucho BITACORA_MAX eventos (los más nuevos). */
+  var BITACORA_MAX = 200;
+  var TIPOS_BITACORA = { investiga: { txt: 'Investiga', icono: 'lupa' }, analiza: { txt: 'Analiza', icono: 'barras' }, propone: { txt: 'Propone', icono: 'bandera' }, registra: { txt: 'Registra', icono: 'lapiz' },
+    riesgo: { txt: 'Riesgo', icono: 'escudo' }, pausa: { txt: 'Pausa', icono: 'pausa' }, error: { txt: 'Error', icono: 'alerta' }, resumen: { txt: 'Resumen', icono: 'lista' } };
+  var RE_DIA = /^\d{4}-\d{2}-\d{2}$/;
+  function idBitacora(agente, ts) { return String(agente) + '-' + claveDia(ts); }
+  /* De qué agente y de qué día es un documento de bitácora: sus campos agente y dia o, si faltan, el id. */
+  function deBitacora(doc) {
+    var m = String(doc && doc.id || '').match(/^(.+)-(\d{4}-\d{2}-\d{2})$/);
+    return { agente: doc && doc.agente != null ? String(doc.agente) : m ? m[1] : '', dia: doc && RE_DIA.test(doc.dia) ? doc.dia : m ? m[2] : '' };
+  }
+  function bitacoraDelAgente(docs, id) { return (docs || []).filter(function (d) { return d && deBitacora(d).agente === String(id); }); }
+  function normEvento(ev) {
+    ev = ev && typeof ev === 'object' ? ev : {};
+    var ts = Number(ev.ts), costo = Number(ev.costo);
+    return { ts: ev.ts != null && isNum(ts) && ts > 0 ? ts : null, tipo: Object.prototype.hasOwnProperty.call(TIPOS_BITACORA, ev.tipo) ? ev.tipo : null, texto: String(ev.texto == null ? '' : ev.texto).trim().slice(0, 300),
+      origen: ev.origen === 'Johannes' ? 'Johannes' : null, costo: ev.costo != null && isNum(costo) && costo >= 0 ? costo : null };
+  }
+  function porHoraDesc(a, b) { return a.ts == null && b.ts == null ? 0 : a.ts == null ? 1 : b.ts == null ? -1 : b.ts - a.ts; }
+  /* Hoy y ayer (Bolivia) de un agente, cada día con sus eventos del más nuevo al más viejo y el tope de BITACORA_MAX (si hay más, se muestran los más nuevos). */
+  function bitacoraPorDia(docs, id, ts) {
+    var hoy = claveDia(ts), mias = bitacoraDelAgente(docs, id);
+    return [[hoy, 'Hoy'], [sumarDias(hoy, -1), 'Ayer']].map(function (d) {
+      var evs = [];
+      mias.filter(function (x) { return deBitacora(x).dia === d[0]; }).forEach(function (x) { (Array.isArray(x.eventos) ? x.eventos : []).forEach(function (e) { evs.push(normEvento(e)); }); });
+      evs.sort(porHoraDesc);
+      return { dia: d[0], titulo: d[1], total: evs.length, recortados: Math.max(0, evs.length - BITACORA_MAX), eventos: evs.slice(0, BITACORA_MAX) };
+    });
+  }
+  /* Los eventos de un día con uno más, en orden de hora (como se guardan), quedándose con los max más nuevos. No cambia el arreglo que recibe. */
+  function agregarEvento(eventos, ev, max) {
+    max = max || BITACORA_MAX;
+    var l = (Array.isArray(eventos) ? eventos.slice() : []).concat([ev]).sort(function (a, b) { return porHoraDesc(b, a); });
+    return l.length > max ? l.slice(l.length - max) : l;
+  }
+  /* El evento que deja Johannes al pausar o reanudar (origen "Johannes"; datos.pausado dice cuál de las dos). */
+  function eventoPausa(pausado, ts) {
+    return { ts: ts, tipo: 'pausa', origen: 'Johannes', texto: pausado ? 'Johannes pausó al agente desde Centinela (apagado de emergencia).' : 'Johannes reanudó al agente desde Centinela.', datos: { pausado: !!pausado } };
+  }
+  /* Historial de pausas: los eventos 'pausa' de Johannes en la bitácora y el último cambio guardado en el agente (pausadoTs), en orden de hora. */
+  function historialPausas(a, docsBitacora) {
+    var h = [];
+    if (!a) return h;
+    bitacoraDelAgente(docsBitacora, a.id).forEach(function (doc) {
+      (Array.isArray(doc.eventos) ? doc.eventos : []).forEach(function (ev) {
+        if (ev && ev.tipo === 'pausa' && ev.origen === 'Johannes' && ev.datos && typeof ev.datos.pausado === 'boolean' && isNum(Number(ev.ts))) h.push({ ts: Number(ev.ts), pausado: ev.datos.pausado });
+      });
+    });
+    if (isNum(a.pausadoTs)) h.push({ ts: a.pausadoTs, pausado: a.pausado === true });
+    return h.sort(function (x, y) { return x.ts - y.ts; });
+  }
+  /* ¿Estaba en pausa en el instante ts? Manda el último cambio hasta ts. Antes del primer cambio conocido no se sabe: no se supone pausa.
+     Sin ningún cambio con hora (pausado escrito fuera de la app, sin pausadoTs), vale lo de ahora. */
+  function pausadoEn(a, ts, historial) {
+    if (!a) return false;
+    var h = historial || [];
+    if (!h.length) return a.pausado === true;
+    var antes = h.filter(function (p) { return p.ts <= ts; });
+    return antes.length ? antes[antes.length - 1].pausado : false;
+  }
+
+  /* Guardián de riesgo del agente (reglas fijas, sin IA). */
+  function numAg(v) { var k = Number(v); return v != null && v !== '' && typeof v !== 'boolean' && isNum(k) ? k : NaN; }
+  /* Costos estimados opcionales de una operación del agente (comisión y deslizamiento, en dólares). Lo que no es un número no suma. */
+  function costosDe(t) { var c = t && t.costos; if (!c || typeof c !== 'object') return 0; return max0(numAg(c.comision) || 0) + max0(numAg(c.deslizamiento) || 0); }
+  function agenteDe(t) { return t && t.agente != null ? String(t.agente) : ''; }
+  /* trade: la operación a revisar. tradesDelAgente: las de ese agente que YA cuentan (las que cumplieron), sin esta. agente: normAgente(...) con pausas = historialPausas(...).
+     ts: ahora (una hora más adelante que ts + AG_FUTURO_MS es forma incorrecta). Todo se mide en el instante de entrada: lo realizado hasta ahí, lo abierto en ese momento
+     y si el agente estaba en pausa. Las pérdidas del día y la acumulada suman lo perdido y el riesgo abierto, como los presupuestos de Johannes (regla 3).
+     Devuelve { ok, motivos, codigos }; el primer motivo es el que va en el chip "Fuera de límites". */
+  function validarOperacionAgente(trade, cfgAgente, tradesDelAgente, agente, ts) {
+    var cfg = normCfgAgente(cfgAgente), motivos = [], codigos = [];
+    var no = function (k, txt) { codigos.push(k); motivos.push(txt); };
+    var fin = function () { return { ok: !motivos.length, motivos: motivos, codigos: codigos }; };
+    if (!trade || typeof trade !== 'object' || Array.isArray(trade)) { no('forma', 'Forma incorrecta: no es una operación'); return fin(); }
+    var t = normTrade(trade.id, trade), s = t.dir === 'venta' ? -1 : 1, en = t.ts, idAg = agente && agente.id != null ? String(agente.id) : null, mal = [];
+    /* Forma */
+    if (trade.cuenta !== 'agente') mal.push('sin cuenta «agente»');
+    if (trade.practica !== true) mal.push('sin practica: true');
+    if (!agenteDe(trade).trim()) mal.push('sin agente'); else if (idAg !== null && agenteDe(trade) !== idAg) mal.push('es de otro agente');
+    if (!String(t.activo || '').trim()) mal.push('sin activo');
+    if (t.dir !== 'compra' && t.dir !== 'venta') mal.push('sin dirección');
+    if (!(t.entrada > 0)) mal.push('sin entrada');
+    if (!(t.unidades > 0)) mal.push('sin unidades');
+    if (!(en > 0)) mal.push('sin hora de entrada'); else if (isNum(ts) && en > ts + AG_FUTURO_MS) mal.push('con hora en el futuro');
+    if (t.estado !== 'abierta' && t.estado !== 'cerrada') mal.push('sin estado abierta o cerrada');
+    else if (t.estado === 'cerrada') {
+      var ct = t.cierre ? numAg(t.cierre.ts) : NaN;
+      if (!(isNum(ct) && en > 0 && ct >= en) || !isNum(numAg(trade.pnl))) mal.push('cierre sin hora o resultado');
+      else if (isNum(ts) && ct > ts + AG_FUTURO_MS) mal.push('con cierre en el futuro');
+    }
+    if (trade.costos != null && (typeof trade.costos !== 'object' || ['comision', 'deslizamiento'].some(function (k) { return trade.costos[k] != null && !(numAg(trade.costos[k]) >= 0); }))) mal.push('costos no válidos');
+    if (mal.length) no('forma', 'Forma incorrecta: ' + mal.join(', '));
+    if (!(t.entrada > 0) || !(t.unidades > 0) || !(en > 0) || (t.dir !== 'compra' && t.dir !== 'venta')) return fin();
+    /* Pausa (el apagado de emergencia de Johannes) */
+    if (pausadoEn(agente, en, agente && agente.pausas)) no('pausa', 'El agente estaba en pausa a las ' + hhmm(en, TZ_BO));
+    /* La cuenta en el instante de entrada */
+    var previas = (tradesDelAgente || []).filter(function (p) { return p && p !== trade && !(p.id != null && p.id === trade.id); }).map(function (p) { return normTrade(p.id, p); }).filter(function (p) { return p.ts > 0 && p.ts <= en; });
+    var abiertas = previas.filter(function (p) { return !(p.estado === 'cerrada' && p.cierre && Number(p.cierre.ts) <= en); });
+    var hechas = [];
+    previas.forEach(function (p) { ejecuciones(p).forEach(function (x) { if (isNum(x.ts) && x.ts <= en) hechas.push(x); }); });
+    var saldo = cfg.capital + suma(hechas, function (x) { return x.pnl; }) - suma(previas, costosDe), perdAcum = max0(cfg.capital - saldo);
+    var dia = claveDia(en), perdDia = suma(hechas.filter(function (x) { return x.pnl < 0 && claveDia(x.ts) === dia; }), function (x) { return -x.pnl; });
+    var riesgoAb = suma(abiertas, function (p) { return p.sl1 > 0 && p.entrada > 0 ? Math.abs(p.entrada - p.sl1) * p.unidades : 0; });
+    var detenido = perdAcum >= cfg.perdidaMax - AG_TOL;
+    if (detenido) no('detenido', 'Experimento detenido por pérdida máxima');
+    /* Stop */
+    var stopOk = false;
+    if (!(t.sl1 > 0)) no('stop', 'Sin stop');
+    else if (s * (t.entrada - t.sl1) <= 0) no('stop', 'Stop del lado equivocado');
+    else { stopOk = true; if (t.stopActual > 0 && s * (t.sl1 - t.stopActual) > 1e-9) no('stop', 'Stop alejado de la entrada'); }
+    /* Riesgo por operación */
+    var d = stopOk ? Math.abs(t.entrada - t.sl1) : NaN, riesgo = stopOk ? d * t.unidades : NaN;
+    if (stopOk && riesgo > cfg.riesgoOp + AG_TOL) no('riesgo', 'Riesgo de ' + money(riesgo) + ' (máximo ' + money(cfg.riesgoOp) + ')');
+    /* Beneficio/riesgo de cada TP (el TP1 es obligatorio; el TP2, si está) */
+    [['tp1', 'TP1'], ['tp2', 'TP2']].forEach(function (c) {
+      var v = t[c[0]];
+      if (!(v > 0)) { if (c[0] === 'tp1') no('rr', 'Sin TP1'); return; }
+      if (!stopOk) return;
+      var rr = s * (v - t.entrada) / d;
+      if (rr <= 0) no('rr', c[1] + ' del lado equivocado');
+      else if (rr < cfg.rrMin - 1e-9) no('rr', c[1] + ' con B/R ' + ratio(rr) + ' (mínimo ' + ratio(cfg.rrMin) + ')');
+    });
+    /* Máximo de abiertas */
+    if (abiertas.length >= cfg.maxAbiertas) no('abiertas', 'Ya tenía ' + abiertas.length + (abiertas.length === 1 ? ' abierta' : ' abiertas') + ' (máximo ' + cfg.maxAbiertas + ')');
+    /* Pérdida del día y acumulada: lo perdido + el riesgo abierto + el riesgo de esta. Una ganancia no compensa una pérdida del día. */
+    if (stopOk) {
+      var diaTot = perdDia + riesgoAb + riesgo, acTot = perdAcum + riesgoAb + riesgo;
+      if (diaTot > cfg.perdidaDia + AG_TOL) no('dia', 'Con esta, la pérdida del día podría llegar a ' + money(diaTot) + ' (máximo ' + money(cfg.perdidaDia) + ')');
+      if (!detenido && acTot > cfg.perdidaMax + AG_TOL) no('acumulada', 'Con esta, la pérdida acumulada podría llegar a ' + money(acTot) + ' (máximo ' + money(cfg.perdidaMax) + ')');
+    }
+    /* Sin apalancamiento: la posición no puede valer más que el saldo virtual disponible (saldo menos lo que ocupan las abiertas) */
+    var nocional = t.entrada * t.unidades, disp = saldo - suma(abiertas, function (p) { return p.entrada > 0 ? p.entrada * p.unidades : 0; });
+    if (nocional > disp + AG_TOL) no('apalancamiento', 'Posición de ' + money(nocional) + ' con ' + money(max0(disp)) + ' disponibles (sin apalancamiento)');
+    return fin();
+  }
+  /* Cuenta simulada de un agente en el instante ts. Revisa sus operaciones de la más vieja a la más nueva, cada una contra las que ya cumplieron.
+     saldo = capital + resultados − costos estimados de las que cumplen; las que no cumplen no cuentan en el saldo ni en las estadísticas.
+     resultadoHoy: lo realizado hoy (Bolivia) menos los costos de las que entraron hoy. detenido: la pérdida acumulada llegó al máximo. */
+  function cuentaAgente(trades, cfgAgente, agente, ts) {
+    var cfg = normCfgAgente(cfgAgente), id = agente && agente.id != null ? String(agente.id) : null, hoy = claveDia(ts);
+    var orden = function (x) { var v = Number(x && x.ts); return isNum(v) ? v : 0; };
+    var mias = (trades || []).filter(function (t) { return t && esDeAgente(t) && (id === null || agenteDe(t) === id); })
+      .sort(function (a, b) { return (orden(a) - orden(b)) || (String(a.id) < String(b.id) ? -1 : String(a.id) > String(b.id) ? 1 : 0); });
+    var ok = [], fuera = [], motivos = {};
+    mias.forEach(function (t) {
+      var v = validarOperacionAgente(t, cfg, ok, agente, ts);
+      if (v.ok) ok.push(t); else { fuera.push({ op: t, motivos: v.motivos, codigos: v.codigos }); motivos[t.id] = v.motivos; }
+    });
+    var hechas = [];
+    ok.forEach(function (t) { ejecuciones(normTrade(t.id, t)).forEach(function (x) { if (isNum(x.ts)) hechas.push(x); }); });
+    var costos = suma(ok, costosDe), saldo = cfg.capital + suma(hechas, function (x) { return x.pnl; }) - costos;
+    var hoyR = suma(hechas.filter(function (x) { return claveDia(x.ts) === hoy; }), function (x) { return x.pnl; }) - suma(ok.filter(function (t) { return claveDia(Number(t.ts)) === hoy; }), costosDe);
+    var perd = max0(cfg.capital - saldo);
+    return { id: id, cfg: cfg, validas: ok, fuera: fuera, motivos: motivos, fueraN: fuera.length, saldo: round2(saldo), resultadoHoy: round2(hoyR), perdidaAcum: round2(perd), costos: round2(costos),
+      detenido: perd >= cfg.perdidaMax - AG_TOL, abiertas: ok.filter(function (t) { return t.estado === 'abierta'; }), cerradas: ok.filter(function (t) { return t.estado === 'cerrada'; }) };
+  }
+
+  /* ---------- Sello de ajustes (v3.8): avisa si config/main o config/agente cambiaron fuera de Centinela ----------
+     Cada vez que Johannes guarda desde la app, el documento lleva cambio: { ts, origen: 'app', huella }; la huella resume los valores guardados.
+     Si los valores ya no coinciden con la huella, o el documento perdió el sello, alguien los cambió fuera de la app. */
+  var CAMPOS_MAIN = Object.keys(DEF);
+  function huellaAjustes(data, campos) { return hashTxt(JSON.stringify(campos.map(function (k) { return data && data[k] !== undefined ? data[k] : null; }))); }
+  function selloAjustes(data, campos, ts) { return { ts: ts, origen: 'app', huella: huellaAjustes(data, campos) }; }
+  /* 'ok' (sello de la app que coincide), 'alterado' (sello que no coincide), 'sin_sello' o 'vacio' (el documento no existe). */
+  function estadoSello(data, campos) {
+    if (!data || typeof data !== 'object') return 'vacio';
+    var c = data.cambio;
+    if (!c || typeof c !== 'object') return 'sin_sello';
+    return c.origen === 'app' && c.huella === huellaAjustes(data, campos) ? 'ok' : 'alterado';
+  }
+  /* ¿Cambió fuera de la app? previo: el documento como se vio antes en esta sesión (undefined si es la primera vez; null si no existía).
+     op.siempreSellado: la app siempre lo guarda con sello (config/agente nació en v3.8). op.yaSellado: este navegador ya lo vio con un sello válido.
+     Un config/main sin sello que nunca se vio sellado es de antes de v3.8: no se avisa, porque no se sabe. */
+  function cambioFueraDeApp(data, previo, campos, op) {
+    op = op || {};
+    var e = estadoSello(data, campos);
+    if (e === 'ok') return false;
+    if (e === 'alterado') return true;
+    if (previo !== undefined && huellaAjustes(previo, campos) !== huellaAjustes(data, campos)) return true;
+    if (e === 'vacio') return !!op.yaSellado;
+    return !!(op.siempreSellado || op.yaSellado);
+  }
+  /* El aviso sigue hasta que el documento vuelva a tener un sello válido (Johannes guarda de nuevo desde la app). vivo: el cambio se vio mientras la app estaba abierta. */
+  function siguienteAlertaAjustes(alerta, data, previo, campos, op, ts) {
+    if (estadoSello(data, campos) === 'ok') return null;
+    if (alerta) return alerta;
+    return cambioFueraDeApp(data, previo, campos, op) ? { ts: ts, vivo: previo !== undefined } : null;
+  }
+  /* Si el cambio se vio en vivo se sabe la hora; si ya estaba al abrir, solo que fue antes. */
+  function textoAlertaAjustes(cual, alerta) {
+    return (cual === 'agente' ? 'Los límites de la cuenta del agente cambiaron' : 'Tus ajustes cambiaron') + ' fuera de Centinela ' + (alerta.vivo ? 'a las ' : 'antes de las ') + hhmm(alerta.ts, TZ_BO) + ': revisalos.';
+  }
+
   /* ---------- Guardado ---------- */
   function mensajeError(e) {
     if (!e) return 'Algo salió mal.';
@@ -1733,7 +2136,52 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   }
   function guardarCfg(c) {
     if (S.local) { S.cfg = normCfg(c); renderAll(); return Promise.resolve(); }
-    return conReintento(function () { return CFGDOC.set(clone(c)); });
+    /* v3.8: con el sello de la app (cambio), para notar si los ajustes cambian fuera de Centinela. */
+    var d = clone(c); d.cambio = selloAjustes(d, CAMPOS_MAIN, Date.now());
+    return conReintento(function () { return CFGDOC.set(d); });
+  }
+  /* PLATAFORMA: guarda los límites de la cuenta simulada de los agentes en config/agente, con el sello de la app. En modo local, en memoria. */
+  function guardarCfgAgente(c) {
+    if (S.local) { S.cfgAg = normCfgAgente(c); renderAll(); return Promise.resolve(); }
+    var d = {}; AGENTE_CAMPOS.forEach(function (k) { d[k] = c[k]; }); d.cambio = selloAjustes(d, AGENTE_CAMPOS, Date.now());
+    return conReintento(function () { return CFGAGDOC.set(d); });
+  }
+  /* PLATAFORMA: escucha los agentes, su bitácora (los días más recientes) y los límites de su cuenta. */
+  function escucharAgentes(db) {
+    AGENTES = db.collection('agentes'); BITACORA = db.collection('bitacora'); CFGAGDOC = db.doc('config/agente');
+    AGENTES.limit(AGENTES_MAX).onSnapshot(function (snap) {
+      S.agentes = snap.docs.map(function (d) { return normAgente(d.id, d.data()); }); S.agentesError = false;
+      if (S.loaded) renderAll();
+    }, function () { S.agentesError = true; if (S.loaded) renderAll(); });
+    BITACORA.orderBy('dia', 'desc').limit(BITACORA_DOCS).onSnapshot(function (snap) {
+      S.bitacora = snap.docs.map(function (d) { var x = clone(d.data()); x.id = d.id; return x; });
+      if (S.loaded) renderAll();
+    }, function () { });
+    CFGAGDOC.onSnapshot(function (snap) {
+      var data = snap.exists ? clone(snap.data()) : null;
+      S.cfgAg = normCfgAgente(data); revisarSello('agente', data);
+      renderAll();
+    }, function () { });
+  }
+  /* PLATAFORMA: agrega un evento a la bitácora del día de un agente (un documento por agente y día, con tope de BITACORA_MAX). En modo local, en memoria. */
+  function agregarABitacora(agente, ev) {
+    var id = idBitacora(agente, ev.ts);
+    if (S.local) {
+      var d0 = S.bitacora.filter(function (x) { return x.id === id; })[0];
+      if (d0) d0.eventos = agregarEvento(d0.eventos, ev); else S.bitacora.unshift({ id: id, agente: agente, dia: claveDia(ev.ts), ts: ev.ts, eventos: [ev] });
+      return Promise.resolve();
+    }
+    var ref = BITACORA.doc(id);
+    return conReintento(function () { return ref.get(); }).then(function (snap) {
+      var prev = snap.exists ? snap.data() : null, evs = agregarEvento(prev && prev.eventos, ev);
+      return conReintento(function () { return prev ? ref.update({ eventos: evs, ts: ev.ts }) : ref.set({ agente: agente, dia: claveDia(ev.ts), ts: ev.ts, eventos: evs }); });
+    });
+  }
+  /* PLATAFORMA: pausa o reanuda un agente (solo Johannes, desde la app): pausado y pausadoTs en su documento y un evento 'pausa' con origen "Johannes" en su bitácora. */
+  function cambiarPausaAgente(id, pausado, ts) {
+    var ev = eventoPausa(pausado, ts);
+    if (S.local) { S.agentes.forEach(function (a) { if (a.id === id) { a.pausado = !!pausado; a.pausadoTs = ts; } }); return agregarABitacora(id, ev).then(renderAll); }
+    return conReintento(function () { return AGENTES.doc(id).update({ pausado: !!pausado, pausadoTs: ts }); }).then(function () { return agregarABitacora(id, ev); });
   }
   /* Antes de tocar una posición, se confirma que nadie la cambió desde otro dispositivo. */
   function verificarVigente(t) {
@@ -1802,7 +2250,16 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     alerta: '<path d="M12 3.5l9 16H3z"/><path d="M12 10v4.2M12 17.2v.01"/>',
     no: '<path d="M8.2 3h7.6L21 8.2v7.6L15.8 21H8.2L3 15.8V8.2z"/><path d="M9 9l6 6M15 9l-6 6"/>',
     reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>',
-    regular: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>'
+    regular: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
+    /* Agentes y bitácora (v3.8) */
+    lupa: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
+    barras: '<path d="M4 20h16"/><path d="M7 16v-5M12 16V6M17 16v-8"/>',
+    lapiz: '<path d="M4 20l1.2-4.4L15.5 5.3a2 2 0 0 1 2.8 0l.4.4a2 2 0 0 1 0 2.8L8.4 18.8z"/><path d="M13.5 7.3l3.2 3.2"/>',
+    escudo: '<path d="M12 3l7.5 3v5.5c0 4.6-3.1 8-7.5 9.5-4.4-1.5-7.5-4.9-7.5-9.5V6z"/>',
+    pausa: '<path d="M9 5v14M15 5v14"/>',
+    apagado: '<path d="M12 3v8"/><path d="M6.6 6.6a8 8 0 1 0 10.8 0"/>',
+    bandera: '<path d="M5 21V4"/><path d="M5 4h12l-2.5 4.5L17 13H5"/>',
+    lista: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>'
   };
   function icono(k, clase) { return '<svg class="' + (clase || 'ico') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICONOS[k] || '') + '</svg>'; }
   var NIVEL_VENTANA = { buena: { txt: 'BUENA', ico: 'ok' }, regular: { txt: 'REGULAR', ico: 'regular' }, mala: { txt: 'MALA', ico: 'no' } };
@@ -1871,7 +2328,112 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   function renderTablero() {
     if (!S.loaded || !S.est) return;
     var ahora = Date.now();
-    renderAbCompacta(ahora); renderSemana(); renderProtHoy(protecciones(ahora), ahora); renderMacro(ahora);
+    renderAbCompacta(ahora); renderSemana(); renderProtHoy(protecciones(ahora), ahora); renderMacro(ahora); renderAlertasAjustes(); renderAgentes(ahora);
+  }
+
+  /* ---------- Render: agentes (v3.8) ---------- */
+  /* Personajes originales (viewBox 64×64): .c cuerpo, .l trazos, .o ojos, .m detalle en rojo de marca. .av-ojos y .av-cerrados cambian según el estado. */
+  var AVATARES_SVG = {
+    vigia: '<path class="m" d="M29 5h8l-5 9.5h-7z"/><path class="c" d="M14 56V32a18 18 0 0 1 36 0v24z"/><rect class="k" x="18" y="27" width="28" height="12" rx="2.5"/>' +
+      '<g class="av-ojos"><rect class="ok" x="22.5" y="31" width="6.5" height="4.5" rx="1.2"/><rect class="ok" x="35" y="31" width="6.5" height="4.5" rx="1.2"/></g><g class="av-cerrados"><path class="lv" d="M23 33.5h6M35.5 33.5h6"/></g>' +
+      '<path class="l" d="M23 47h18M14 56h36"/>',
+    buho: '<path class="l" d="M19 19l-3-9 9 6M45 19l3-9-9 6"/><path class="c" d="M12 35c0-13 9-21 20-21s20 8 20 21v9c0 8-9 13-20 13s-20-5-20-13z"/>' +
+      '<circle class="c" cx="24" cy="31" r="7.5"/><circle class="c" cx="40" cy="31" r="7.5"/><g class="av-ojos"><circle class="o" cx="24" cy="31" r="3.2"/><circle class="o" cx="40" cy="31" r="3.2"/></g>' +
+      '<g class="av-cerrados"><path class="l" d="M19.5 31.5q4.5 3 9 0M35.5 31.5q4.5 3 9 0"/></g><path class="m" d="M29.5 38.5h5L32 43.5z"/><path class="l" d="M23 49q9 4.5 18 0"/>',
+    lince: '<path class="l" d="M13 9V3.5M51 9V3.5"/><path class="c" d="M15 27L13 9l12 9h14l12-9-2 18c3 4 4 8 4 12 0 10-10 17-21 17s-21-7-21-17c0-4 1-8 4-12z"/>' +
+      '<g class="av-ojos"><path class="o" d="M20 33q4-4.5 8 0q-4 3.5-8 0z"/><path class="o" d="M36 33q4-4.5 8 0q-4 3.5-8 0z"/></g><g class="av-cerrados"><path class="l" d="M20 34h8M36 34h8"/></g>' +
+      '<path class="m" d="M29 40h6l-3 3.5z"/><path class="l" d="M32 43.5v2.5M26.5 48q5.5 3.5 11 0M7 41l8 1M7 46l8-1M57 41l-8 1M57 46l-8-1"/>',
+    faro: '<path class="m" d="M26 5h12l-2 6h-8z"/><path class="c" d="M19 11h26l-3 6H22z"/><rect class="c" x="18" y="17" width="28" height="31" rx="4"/>' +
+      '<circle class="c" cx="32" cy="32" r="9"/><g class="av-ojos"><circle class="o" cx="32" cy="32" r="4"/></g><g class="av-cerrados"><path class="l" d="M24.5 32.5q7.5 4.5 15 0"/></g>' +
+      '<path class="l" d="M22 48l-2 8h24l-2-8M11 31H5M59 31h-6M12 19l-4-3M52 19l4-3"/>',
+    cubo: '<path class="l" d="M32 14V8"/><circle class="m" cx="32" cy="6" r="3.5"/><rect class="c" x="11" y="14" width="42" height="34" rx="5"/>' +
+      '<g class="av-ojos"><rect class="o" x="19" y="24" width="8" height="8" rx="1.8"/><rect class="o" x="37" y="24" width="8" height="8" rx="1.8"/></g><g class="av-cerrados"><path class="l" d="M19 28.5h8M37 28.5h8"/></g>' +
+      '<rect class="l" x="22" y="37" width="20" height="5" rx="1"/><path class="l" d="M28.5 37v5M35.5 37v5M21 48v6M43 48v6M15 56h34"/>'
+  };
+  /* Lo que se suma a cualquier avatar según el estado: "zzz" en pausa, "!" con error, la línea que escanea al analizar y el anillo al revisar el riesgo. */
+  var AV_EXTRAS = '<g class="av-zzz"><text class="z" x="47" y="17">z</text><text class="z" x="54" y="9">z</text></g>' +
+    '<g class="av-error"><circle class="m" cx="53" cy="11" r="7.5"/><path class="bang" d="M53 7v4.6M53 15.2v.01"/></g><rect class="m av-scan" x="12" y="21" width="40" height="2.6" rx="1.3"/>' +
+    '<circle class="anillo av-anillo" cx="32" cy="33" r="28"/>';
+  function avatarHtml(a, clave) {
+    var cuerpo = a.avatar && AVATARES_SVG[a.avatar];
+    if (!cuerpo) return '<span class="av av-ini" data-av="" data-estado="' + clave + '" aria-hidden="true">' + esc(String(a.nombre || '?').charAt(0).toUpperCase()) + '</span>';
+    return '<span class="av" data-av="' + a.avatar + '" data-estado="' + clave + '" aria-hidden="true"><svg viewBox="0 0 64 64" focusable="false"><g class="av-todo">' + cuerpo + AV_EXTRAS + '</g></svg></span>';
+  }
+  /* Las cuentas de todos los agentes (los que tienen documento y los que solo aparecen en operaciones), una vez por dibujo. */
+  function calcularAgentes(ahora) {
+    var ids = S.agentes.map(function (a) { return a.id; }), out = { ids: ids, porId: {}, validas: {}, motivos: {} };
+    S.trades.forEach(function (t) { if (esDeAgente(t) && ids.indexOf(agenteDe(t)) < 0) ids.push(agenteDe(t)); });
+    ids.forEach(function (id) {
+      var doc = S.agentes.filter(function (a) { return a.id === id; })[0], base = doc || normAgente(id, {});
+      var ag = Object.assign({}, base, { pausas: historialPausas(base, S.bitacora) });
+      if (!id) ag.nombre = 'Sin agente';
+      var c = cuentaAgente(S.trades, S.cfgAg, ag, ahora);
+      out.porId[id] = { agente: ag, cuenta: c, conDoc: !!doc };
+      c.validas.forEach(function (t) { out.validas[t.id] = id; });
+      Object.keys(c.motivos).forEach(function (k) { out.motivos[k] = c.motivos[k]; });
+    });
+    return out;
+  }
+  function eventoBitHtml(ev) {
+    var t = ev.tipo ? TIPOS_BITACORA[ev.tipo] : { txt: 'Sin tipo', icono: 'regular' };
+    return '<li class="bit-ev" data-tipo="' + (ev.tipo || '') + '">' + icono(t.icono) + '<p class="bit-t"><b>' + t.txt + '</b><time>' + (ev.ts ? hhmm(ev.ts, TZ_BO) : '--:--') + '</time>' +
+      (ev.origen ? '<span class="chip">' + esc(ev.origen) + '</span>' : '') + (ev.costo != null ? '<span class="bit-c">costo $' + nf4.format(ev.costo) + '</span>' : '') + '</p>' +
+      '<p>' + (ev.texto ? esc(ev.texto) : '<span class="hint">Sin texto.</span>') + '</p></li>';
+  }
+  function bitacoraHtml(a, ahora) {
+    var dias = bitacoraPorDia(S.bitacora, a.id, ahora), n = dias[0].total;
+    return '<details class="ag-bit" data-bit="' + esc(a.id) + '"' + (S.ui.bitAbiertas[a.id] ? ' open' : '') + '><summary><span>Bitácora</span><small>' + (n ? cuantas(n, 'evento hoy', 'eventos hoy') : 'sin eventos hoy') + '</small></summary>' +
+      dias.map(function (d) {
+        return '<div class="bit-dia"><h4>' + d.titulo + ' · ' + d.dia.slice(8, 10) + '/' + d.dia.slice(5, 7) + '</h4>' + (d.eventos.length ? '<ol class="bit-lista">' + d.eventos.map(eventoBitHtml).join('') + '</ol>' : '<p class="hint">Sin eventos.</p>') +
+          (d.recortados ? '<p class="hint">Se muestran los ' + BITACORA_MAX + ' más nuevos de ' + d.total + ': cada día guarda como mucho ' + BITACORA_MAX + '.</p>' : '') + '</div>';
+      }).join('') + '</details>';
+  }
+  function tarjetaAgente(x, ahora) {
+    var a = x.agente, c = x.cuenta, e = estadoAgente(a), sn = avisoSinNoticias(a, ahora, c.detenido), id = a.id, busy = !!S.ui.agBusy[id], m = S.ui.agMsg[id];
+    var h = '<article class="card ag" data-ag="' + esc(id) + '" data-estado="' + e.clave + '"><div class="ag-h">' + avatarHtml(a, e.clave) +
+      '<div class="ag-nom"><strong>' + esc(a.nombre) + '</strong>' + (a.rol ? '<span>' + esc(a.rol) + '</span>' : '') + '</div></div>' +
+      '<p class="ag-est" data-tono="' + e.tono + '">' + icono(e.icono) + '<span>' + esc(e.palabra) + (e.porVos ? ' · la pausaste vos' : '') + '</span></p>' +
+      (a.texto ? '<p class="ag-frase">' + esc(a.texto) + '</p>' : '<p class="ag-frase hint">El agente todavía no dijo qué está haciendo.</p>');
+    if (c.detenido) h += '<p class="ag-aviso" data-luz="rojo">' + icono('no') + '<span><b>Experimento detenido por pérdida máxima.</b> La pérdida acumulada llegó a ' + money(c.perdidaAcum) + ' (máximo ' + money(c.cfg.perdidaMax) + '): no tiene que abrir nada más.</span></p>';
+    if (sn) h += '<p class="ag-aviso" data-luz="ambar">' + icono('alerta') + '<span><b>' + esc(sn.texto) + '</b> · esperaba una corrida cada ' + duracion(sn.esperado / 60000) + '.</span></p>';
+    var prox = a.proximaCorrida ? cuandoCorto(a.proximaCorrida, ahora) + (a.proximaCorrida < ahora ? ' (ya pasó)' : '') : 'sin dato';
+    h += '<dl class="ag-dat"><div><dt>Última corrida</dt><dd>' + (a.ultimaCorrida ? cuandoCorto(a.ultimaCorrida, ahora) : 'todavía no') + '</dd></div><div><dt>Próxima</dt><dd>' + prox + '</dd></div>' +
+      '<div><dt>Saldo virtual</dt><dd class="big">' + money(c.saldo) + '<small>capital ' + money(c.cfg.capital) + '</small></dd></div><div><dt>Resultado de hoy</dt><dd class="big">' + resultadoHtml(c.resultadoHoy, moneyS(c.resultadoHoy)) + '</dd></div></dl>' +
+      '<p class="ag-cont"><span class="chip' + (c.fueraN ? ' bad' : '') + '">Fuera de límites: ' + c.fueraN + '</span><span class="chip">' + cuantas(c.abiertas.length, 'abierta', 'abiertas') + '</span></p>';
+    if (S.ui.agConfirm === id) {
+      h += '<div class="ag-conf" role="group" aria-label="' + esc((a.pausado ? 'Reanudar a ' : 'Pausar a ') + a.nombre) + '"><p>' + esc(a.pausado ? '¿Reanudar a ' + a.nombre + '? En su próxima corrida va a poder volver a trabajar.' : '¿Pausar a ' + a.nombre + '? Es el apagado de emergencia: en su próxima corrida tiene que leer la pausa y no hacer nada.') + '</p>' +
+        '<div class="row">' + botonSen('data-ag-si', id, a.pausado ? 'Sí, reanudar' : 'Sí, pausar', 'danger small', { dis: busy }) + botonSen('data-ag-no', id, 'Cancelar', 'ghost small', { dis: busy }) + '</div></div>';
+    } else {
+      h += '<div class="ag-acts">' + botonSen('data-ag-pausa', id, busy ? 'Guardando…' : a.pausado ? 'Reanudar' : 'Pausar', 'small', { dis: busy, aria: (a.pausado ? 'Reanudar a ' : 'Pausar a ') + a.nombre }) +
+        botonSen('data-ag-diario', id, 'Ver sus operaciones', 'ghost small', { aria: 'Ver las operaciones de ' + a.nombre + ' en el Diario' }) + '</div>';
+    }
+    if (m) h += '<p class="hint ' + (m.ok ? 'ok' : 'err') + '" role="status">' + esc(m.t) + '</p>';
+    return h + bitacoraHtml(a, ahora) + '</article>';
+  }
+  function renderAgentes(ahora) {
+    var box = $('ag-lista');
+    if (!S.loaded || !S.ag) return;
+    var lista = S.agentes.slice().sort(function (a, b) { return a.nombre.localeCompare(b.nombre, 'es'); });
+    if (!lista.length) { setHtml(box, '<p class="empty">' + (S.agentesError ? 'No pude leer tus agentes. Recargá la página.' : 'Todavía no hay agentes. Se crean como tareas programadas de Claude y aparecen acá.') + '</p>'); return; }
+    var act = document.activeElement, k = act && box.contains(act) ? act.getAttribute('data-k') : null;
+    setHtml(box, lista.map(function (a) { return tarjetaAgente(S.ag.porId[a.id], ahora); }).join(''));
+    if (k && document.activeElement !== act) { var el = [].filter.call(box.querySelectorAll('[data-k]'), function (b) { return b.getAttribute('data-k') === k; })[0]; if (el) el.focus(); }
+  }
+  /* Aviso rojo arriba de Hoy: config/main o config/agente cambiaron fuera de Centinela. Se cierra solo cuando Johannes los guarda de nuevo desde la app. */
+  function renderAlertasAjustes() {
+    setHtml($('hoy-alertas'), ['main', 'agente'].filter(function (k) { return S.ajustes[k].alerta; }).map(function (k) {
+      return '<div class="aviso-r" role="alert" data-ajustes="' + k + '"><span class="ar-tag">' + icono('no') + 'Ajustes cambiados</span><p>' + esc(textoAlertaAjustes(k, S.ajustes[k].alerta)) +
+        ' El aviso se cierra cuando los guardes de nuevo desde Centinela.</p><div class="row"><button type="button" class="small" data-ir-ajustes="' + k + '">' + (k === 'agente' ? 'Revisar límites del agente' : 'Revisar ajustes') + '</button></div></div>';
+    }).join(''));
+  }
+  /* Sello de ajustes en pantalla: recuerda el documento visto y el aviso hasta que Johannes guarde de nuevo desde la app. Lo que se recuerda en este navegador es solo una ayuda. */
+  var SELLO_CLAVE = 'centinela-sellado-';
+  function revisarSello(cual, data) {
+    var st = S.ajustes[cual], campos = cual === 'agente' ? AGENTE_CAMPOS : CAMPOS_MAIN, ya = false;
+    try { ya = localStorage.getItem(SELLO_CLAVE + cual) === '1'; } catch (e) { }
+    st.alerta = siguienteAlertaAjustes(st.alerta, data, st.visto ? st.previo : undefined, campos, { siempreSellado: cual === 'agente', yaSellado: ya }, Date.now());
+    if (estadoSello(data, campos) === 'ok') { try { localStorage.setItem(SELLO_CLAVE + cual, '1'); } catch (e) { } }
+    st.previo = data; st.visto = true;
   }
 
   /* ---------- Render: protecciones (dato macro, pausa, mitad del presupuesto, fin de semana) ---------- */
@@ -2062,7 +2624,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
       '<div class="sen-chips"><span class="chip">' + esc(fuenteTxt(o) + (org ? ' · ' + org : '')) + '</span><span class="chip">' + (o.market ? 'Market' : 'Límite') + '</span>' + (o.evento ? '<span class="chip warn">Evento</span>' : '') + '</div>' +
       '<dl class="lv"><div><dt>Entrada</dt><dd>' + celda('entrada') + '</dd></div><div><dt>SL1</dt><dd>' + celda('sl1') + '</dd></div><div><dt>TP1</dt><dd>' + celda('tp1') + '</dd></div><div><dt>TP2</dt><dd>' + celda('tp2') + '</dd></div></dl>';
     if (filtro === 'practicando') {
-      var t = S.trades.filter(function (tr) { return esPractica(tr) && tr.senalId === id; })[0];
+      var t = S.trades.filter(function (tr) { return esPracticaPropia(tr) && tr.senalId === id; })[0];
       var fin = !t ? 'Practicada' + (isNum(Number(x.tradeTs)) ? ' a las ' + hhmm(Number(x.tradeTs)) : '') + '.'
         : t.estado === 'abierta' ? 'Practicando desde las <b>' + hhmm(t.ts) + '</b> con <b>' + units(t.unidades) + ' acc.</b> a <b>' + price(t.entrada) + '</b>: está en Abiertas y no cuenta en tus presupuestos.'
         : 'Práctica cerrada: ' + resultadoHtml(t.pnl, moneyS(t.pnl) + ' · ' + rfmt(t.r)) + '.';
@@ -2175,8 +2737,8 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   function renderAbiertas() {
     var box = $('listaAbiertas');
     if (!S.loaded) return;
-    /* Las de práctica se gestionan y cierran igual que las reales, pero no están en S.est (no cuentan en presupuestos). */
-    var ab = S.est.abiertas.concat(S.trades.filter(function (t) { return esPractica(t) && t.estado === 'abierta'; })).sort(function (a, b) { return a.ts - b.ts; }), fd = avisoFinDeSemana(Date.now());
+    /* Las de práctica se gestionan y cierran igual que las reales, pero no están en S.est (no cuentan en presupuestos). Las del agente no van acá: las gestiona el agente. */
+    var ab = S.est.abiertas.concat(S.trades.filter(function (t) { return esPracticaPropia(t) && t.estado === 'abierta'; })).sort(function (a, b) { return a.ts - b.ts; }), fd = avisoFinDeSemana(Date.now());
     $('ab-count').textContent = ab.length ? '(' + ab.length + ')' : '';
     conservar(box, function () {
       if (!ab.length) { box.innerHTML = '<p class="empty">No tenés posiciones abiertas. Cuando registres una entrada aparece acá, con botones para el TP1, mover el stop y cerrar.</p>'; return; }
@@ -2208,11 +2770,21 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     if (per === 'todo') return true;
     return per === 'semana' ? inicioSemana(clave) === S.est.semana : clave.slice(0, 7) === S.est.hoy.slice(0, 7);
   }
-  /* modo: 'real' (por defecto: lo que cuenta) o 'practica'. Las de práctica nunca se mezclan con las reales. */
+  /* modo: 'real' (por defecto: lo que cuenta), 'practica' (las de Johannes) o 'agente' (las del agente elegido que cumplen sus límites). Nunca se mezclan. */
   function cerradasPeriodo(per, modo) {
-    var prac = modo === 'practica';
-    return S.trades.filter(function (t) { return esPractica(t) === prac && t.estado === 'cerrada' && t.cierre && isNum(Number(t.cierre.ts)) && enPeriodo(claveDia(Number(t.cierre.ts)), per); })
+    var f = modo === 'practica' ? esPracticaPropia : modo === 'agente' ? delAgenteElegido : function (t) { return !esPractica(t) && !esDeAgente(t); };
+    var l = S.trades.filter(function (t) { return f(t) && t.estado === 'cerrada' && t.cierre && isNum(Number(t.cierre.ts)) && enPeriodo(claveDia(Number(t.cierre.ts)), per); })
       .sort(function (a, b) { return Number(b.cierre.ts) - Number(a.cierre.ts); });
+    /* Si un agente no escribió r, se calcula como lo hace el panel al cerrar: resultado / riesgo inicial (en una copia). */
+    return modo === 'agente' ? l.map(function (t) { return isNum(t.r) || !(t.riesgoInicial > 0) ? t : Object.assign({}, t, { r: round4(t.pnl / t.riesgoInicial) }); }) : l;
+  }
+  /* Agente (v3.8): el elegido en el Diario (null = todos) y si una operación es suya y cumple sus límites. */
+  function modoDiario() { return ['real', 'practica', 'agente'].indexOf(S.ui.diarioModo) >= 0 ? S.ui.diarioModo : 'real'; }
+  function idsElegidos() { return !S.ag ? [] : S.ui.diarioAgente == null ? S.ag.ids : S.ag.ids.filter(function (id) { return id === S.ui.diarioAgente; }); }
+  function delAgenteElegido(t) { return !!S.ag && Object.prototype.hasOwnProperty.call(S.ag.validas, t.id) && idsElegidos().indexOf(S.ag.validas[t.id]) >= 0; }
+  function opEnPeriodo(t, per) {
+    var e = Number(t.ts), c = t.estado === 'cerrada' && t.cierre ? Number(t.cierre.ts) : NaN;
+    return (isNum(e) && e > 0 && enPeriodo(claveDia(e), per)) || (isNum(c) && c > 0 && enPeriodo(claveDia(c), per));
   }
   function bandaSeg(p) { return p == null ? 'Sin análisis de capturas' : p >= 80 ? '80–100 muy sólido' : p >= 65 ? '65–79 con matices' : p >= 50 ? '50–64 falta convicción' : '0–49 no cumple'; }
   /* Orden de las filas de fuente y de ventana: el de FUENTES (y "Sin dato" al final) y el de la barra de Hoy. */
@@ -2343,12 +2915,16 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     PARTES_DIARIO.forEach(function (p) { $('d-' + p).hidden = p !== parte; });
     var box = $('diarioStats'), list = $('diarioLista');
     if (!S.loaded) return;
-    var per = S.ui.per, prac = S.ui.diarioModo === 'practica', lista = cerradasPeriodo(per, S.ui.diarioModo);
-    $('h-cerradas').textContent = prac ? 'Operaciones de práctica cerradas' : 'Operaciones cerradas';
+    var per = S.ui.per, modo = modoDiario(), prac = modo === 'practica', ag = modo === 'agente';
+    renderDiarioAgenteCab(ag); // antes de la lista: deja elegido un agente que existe
+    var lista = cerradasPeriodo(per, modo);
+    $('h-cerradas').textContent = prac ? 'Operaciones de práctica cerradas' : ag ? 'Operaciones del agente' : 'Operaciones cerradas';
     var sen = senalesPeriodo(per), senOp = sen.filter(function (x) { return x.estado === 'operada'; }).length;
     var senTxt = sen.length ? '<p class="hint">Señales ' + (per === 'semana' ? 'de esta semana' : per === 'mes' ? 'de este mes' : 'en total') + ': ' + sen.length + ' · operadas ' + senOp + ' · sin operar ' + (sen.length - senOp) + '.</p>' : '';
     $('btnCsv').disabled = !S.trades.length; $('btnJson').disabled = !S.trades.length && !S.senales.length;
-    renderEstadisticas(lista, per, prac);
+    renderEstadisticas(lista, per, modo);
+    $('comprobarBox').hidden = ag; // Comprobar señales es de tus señales, no de la cuenta del agente
+    if (ag) { renderOpsAgente(lista, per); return; }
     if (!lista.length) {
       setHtml(box, senTxt);
       var cuando = cuandoPer(per);
@@ -2374,6 +2950,46 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     });
   }
 
+  /* ---------- Render: Diario del agente (v3.8): sus operaciones, las que cumplen y las que quedaron fuera de límites ---------- */
+  function renderDiarioAgenteCab(ag) {
+    $('d-ag-box').hidden = !ag;
+    if (!ag || !S.ag) return;
+    var ids = S.ag.ids, sel = $('d-ag-sel');
+    if (S.ui.diarioAgente != null && ids.indexOf(S.ui.diarioAgente) < 0) S.ui.diarioAgente = null;
+    $('d-ag-sel-box').hidden = ids.length < 2;
+    var opc = '<option value="*">Todos los agentes</option>' + ids.map(function (id) { return '<option value="' + esc(id) + '">' + esc(S.ag.porId[id].agente.nombre) + '</option>'; }).join('');
+    if (sel.__opc !== opc) { sel.innerHTML = opc; sel.__opc = opc; }
+    sel.value = S.ui.diarioAgente == null ? '*' : S.ui.diarioAgente;
+    var n = idsElegidos().reduce(function (a, id) { return a + S.ag.porId[id].cuenta.fueraN; }, 0);
+    setHtml($('d-ag-fuera'), '<span class="chip' + (n ? ' bad' : '') + '">Fuera de límites: ' + n + '</span><span class="hint">' + (!ids.length ? 'Todavía no hay agentes ni operaciones de agentes.' : n ? 'No cuentan en el saldo ni en las estadísticas del agente.' : 'Todas sus operaciones cumplen sus límites.') + '</span>');
+  }
+  function filaOpAgente(t) {
+    var mot = S.ag.motivos[t.id], x = S.ag.porId[agenteDe(t)], nombre = x ? x.agente.nombre : 'Sin agente', ts = Number(t.ts);
+    var cerrada = t.estado === 'cerrada' && t.cierre && isNum(Number(t.cierre.ts)), cs = costosDe(t);
+    return '<li class="tr' + (mot ? ' fuera' : '') + '"><div class="tr-top"><div class="who"><strong>' + esc(t.activo || '?') + '</strong><span class="chip">Agente · ' + esc(nombre) + '</span>' +
+      (t.dir === 'compra' || t.dir === 'venta' ? dirChip(t) : '') + (t.estado === 'abierta' ? '<span class="chip">Abierta</span>' : '') +
+      (mot ? '<span class="chip bad fl" title="' + esc(mot.join(' · ')) + '">Fuera de límites: ' + esc(mot[0]) + '</span>' : '') + '</div>' +
+      (cerrada ? '<span class="pnl res ' + cls(t.pnl) + '">' + moneyS(t.pnl) + ' · ' + rfmt(isNum(t.r) ? t.r : t.riesgoInicial > 0 ? t.pnl / t.riesgoInicial : NaN) + '</span>' : '') + '</div>' +
+      '<p class="meta">entró ' + (isNum(ts) && ts > 0 ? ddmm(ts) + ' ' + hhmm(ts) : 'sin hora') + ' a ' + price(t.entrada) + ' · ' + units(t.unidades) + ' u · stop ' + price(t.sl1) + ' · TP1 ' + price(t.tp1) +
+      (cerrada ? ' · salió ' + ddmm(Number(t.cierre.ts)) + ' ' + hhmm(Number(t.cierre.ts)) + ' a ' + price(Number(t.cierre.precio)) + (t.cierre.motivo ? ' (' + esc(t.cierre.motivo) + ')' : '') : '') +
+      (cs ? ' · costos estimados ' + money(cs) : '') + '</p>' +
+      (mot ? '<p class="meta">' + (mot.length > 1 ? 'También: ' + esc(mot.slice(1).join(' · ')) + '. ' : '') + 'No cuenta en su saldo ni en sus estadísticas.</p>' : '') + '</li>';
+  }
+  function renderOpsAgente(lista, per) {
+    var box = $('diarioStats'), list = $('diarioLista'), ids = idsElegidos();
+    var ops = S.trades.filter(function (t) { return esDeAgente(t) && ids.indexOf(agenteDe(t)) >= 0 && opEnPeriodo(t, per); })
+      .sort(function (a, b) { return (Number(b.ts) || 0) - (Number(a.ts) || 0); });
+    var uno = ids.length === 1 ? S.ag.porId[ids[0]] : null, st = estadisticas(lista);
+    setHtml(box, '<div class="stats dos">' +
+      (lista.length ? statHtml('Operaciones', st.n, cuantas(st.gan, 'ganada', 'ganadas') + ' · ' + cuantas(st.perd, 'perdida', 'perdidas') + (st.emp ? ' · ' + st.emp + ' en cero' : '')) +
+        statHtml('Resultado', moneyS(st.pnl), 'en R ' + resultadoHtml(st.rSum, rfmt(st.rSum)), 'res ' + cls(st.pnl)) : '') +
+      (uno ? statHtml('Saldo virtual', money(uno.cuenta.saldo), 'de ' + money(uno.cuenta.cfg.capital) + ' · hoy ' + resultadoHtml(uno.cuenta.resultadoHoy, moneyS(uno.cuenta.resultadoHoy)), uno.cuenta.detenido ? 'down' : '') : '') + '</div>' +
+      (uno && uno.cuenta.detenido ? '<p class="ag-aviso" data-luz="rojo">' + icono('no') + '<span><b>Experimento detenido por pérdida máxima.</b></span></p>' : '') +
+      '<p class="hint">Solo cuentan las que cumplen sus límites (las cerradas ' + (per === 'todo' ? 'de todo el diario' : cuandoPer(per)) + '). ' + (lista.length ? '<button type="button" class="small ghost" data-ir-parte="estadisticas">Ver estadísticas</button>' : '') + '</p>');
+    list.innerHTML = ops.length ? '<ul class="trades">' + ops.map(filaOpAgente).join('') + '</ul>'
+      : '<p class="empty">' + (S.ag.ids.length ? 'No hay operaciones del agente ' + cuandoPer(per) + '.' : 'Todavía no hay operaciones de agentes. Las escriben los agentes (tareas programadas de Claude) y aparecen acá, revisadas con los límites de su cuenta simulada.') + '</p>';
+  }
+
   /* ---------- Render: estadísticas del Diario (las cuentas las hacen estadisticas, quienAcierta y porVentana) ---------- */
   function cuantas(n, uno, varios) { return n + ' ' + (n === 1 ? uno : varios); }
   function rachaTxt(a) { return !a ? 'Sin racha' : a.tipo === 'ganadas' ? cuantas(a.n, 'ganada', 'ganadas') : cuantas(a.n, 'perdida', 'perdidas'); }
@@ -2393,16 +3009,18 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
         '<span class="vent-bar" aria-hidden="true">' + (f.lado ? '<i data-lado="' + f.lado + '" style="width:' + (f.barra / 2) + '%"></i>' : '') + '</span></li>';
     }).join('') + '</ul>';
   }
-  function renderEstadisticas(lista, per, prac) {
-    var box = $('estStats'), det = $('estDetalle'), tablas = $('estTablas');
+  /* modo: 'real', 'practica' o 'agente' (v3.8: las del agente que cumplen sus límites). */
+  function renderEstadisticas(lista, per, modo) {
+    var box = $('estStats'), det = $('estDetalle'), tablas = $('estTablas'), prac = modo === 'practica', ag = modo === 'agente';
     if (!lista.length) {
       det.hidden = true; setHtml(tablas, '');
-      setHtml(box, '<p class="empty">' + (prac ? 'No hay operaciones de práctica cerradas ' : 'No hay operaciones cerradas ') + cuandoPer(per) + ', así que no hay números que mostrar. ' +
-        'Aparecen cuando cierres la primera' + (prac ? ' de práctica' : '') + '; desde ' + MIN_CONCLUSION + ' empiezan a decir algo.</p>');
+      setHtml(box, '<p class="empty">' + (ag ? 'No hay operaciones del agente cerradas que cumplan sus límites ' : prac ? 'No hay operaciones de práctica cerradas ' : 'No hay operaciones cerradas ') + cuandoPer(per) + ', así que no hay números que mostrar. ' +
+        (ag ? 'Aparecen cuando el agente cierre la primera dentro de sus límites' : 'Aparecen cuando cierres la primera' + (prac ? ' de práctica' : '')) + '; desde ' + MIN_CONCLUSION + ' empiezan a decir algo.</p>');
       return;
     }
     var st = estadisticas(lista), pocas = avisoPocas(st.n), q = quienAcierta(lista), v = porVentana(lista), fp = st.fueraPlan, c = st.caida, ra = st.racha;
-    var h = prac ? '<p class="hint">Solo tus operaciones de práctica: estos números no cuentan en tus resultados reales.</p>' : '';
+    var h = prac ? '<p class="hint">Solo tus operaciones de práctica: estos números no cuentan en tus resultados reales.</p>'
+      : ag ? '<p class="hint">Solo las operaciones del agente que cumplen sus límites: no cuentan en tus resultados reales ni en tu práctica.</p>' : '';
     if (pocas) h += avisoHtml('Pocos datos', 'alerta', esc(pocas));
     h += '<div class="stats">' +
       statHtml('Promedio por operación', rfmt(st.rAvg), '', 'res ' + cls(st.rAvg), 'Lo que ganás en promedio por cada 1 R que arriesgás.') +
@@ -3079,10 +3697,12 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
       }).join('') + '</div>';
     }).join(''));
   }
+  var REV_NO_REAL = { practica: 'las de práctica no se mezclan', agente: 'las de los agentes no se mezclan' };
   function renderRevision() {
-    var prac = S.ui.diarioModo === 'practica';
+    var modo = modoDiario(), prac = modo !== 'real';
     $('btnRevision').hidden = !SAMPLE;
     $('revisionBox').hidden = prac; $('revAnteriores').hidden = prac; $('rev-prac').hidden = !prac;
+    if (prac) setHtml($('rev-prac-txt'), 'La revisión con Claude lee solo tus operaciones reales: ' + REV_NO_REAL[modo] + '. Elegí <b>Real</b> para pedirla o ver las anteriores.');
     if (!S.loaded) return;
     var r = S.ui.revisando ? null : S.revisiones[0];
     renderRevisionesAnteriores(r);
@@ -3113,14 +3733,20 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
       'Último día hábil de la semana: aviso del gap del fin de semana en Hoy, Operar y Abiertas (no bloquea).',
       'Con un dato macro cerca o en pausa, «Ya entré igual» sigue disponible y la operación queda marcada en el diario.'
     ].map(function (x) { return '<li>' + x + '</li>'; }).join('');
+    renderAjustesAgente();
     if (S.ui.cfgDirty) return;
     CFG_CAMPOS.forEach(function (k) { $('s-' + k).value = String(c[k]).replace('.', ','); });
     c.niveles.forEach(function (n, i) { $('s-n' + i).value = String(n).replace('.', ','); });
+  }
+  function renderAjustesAgente() {
+    if (S.ui.cfgAgDirty || !S.cfgAg) return;
+    AGENTE_CAMPOS.forEach(function (k) { $('sa-' + k).value = String(S.cfgAg[k]).replace('.', ','); });
   }
 
   function renderAll() {
     renderClock(); renderVentana(Date.now());
     S.est = estadoDe(S.trades, S.cfg, Date.now());
+    S.ag = calcularAgentes(Date.now());
     renderEstado(); renderTablero(); renderCalc(); renderBandeja(); renderAbiertas(); renderDiario(); renderAjustes(); renderResumen(); renderComprobar(); renderRevision(); renderGestion();
   }
 
@@ -3146,7 +3772,8 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
       'fecha_cierre', 'hora_cierre', 'precio_cierre', 'motivo_cierre', 'salidas_parciales', 'tp1_hecho', 'resultado_usd', 'resultado_r', 'siguio_plan', 'reglas_rotas', 'senal_id', 'nota', 'practica'];
     var num = function (x) { return isNum(x) ? String(round4(x)).replace('.', ',') : ''; };
     var q = function (s) { s = String(s == null ? '' : s); return /[;"\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-    var rows = S.trades.slice().sort(function (a, b) { return a.ts - b.ts; }).map(function (t) {
+    /* Las operaciones de los agentes no van en el diario de Johannes (v3.8): se ven en el Diario, en Agente. */
+    var rows = S.trades.filter(function (t) { return !esDeAgente(t); }).sort(function (a, b) { return a.ts - b.ts; }).map(function (t) {
       var c = t.estado === 'cerrada' && t.cierre, cts = c ? Number(t.cierre.ts) : NaN;
       return [claveDia(t.ts), hhmm(t.ts), t.activo, t.tipoActivo || '', t.seguridad == null ? '' : t.seguridad, t.dir, t.origen, t.tipo, num(t.nivel), t.evento ? 'si' : 'no', num(t.entradaPlan), num(t.entrada), num(t.sl1), num(t.sl2), num(t.tp1), num(t.tp2), num(t.unidades), num(t.riesgoInicial), num(t.margen), num(t.nocional), t.estado,
         c ? claveDia(cts) : '', c ? hhmm(cts) : '', c ? num(Number(t.cierre.precio)) : '', c ? t.cierre.motivo : '', t.parciales.map(function (p) { return (p.tipo || 'parcial') + ' ' + num(Number(p.unidades)) + ' u a ' + num(Number(p.precio)) + ' (' + num(Number(p.pnl)) + ')'; }).join(' / '),
@@ -3472,6 +4099,39 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     $('mc-hora').focus({ preventScroll: true });
   });
 
+  /* ---------- Eventos: agentes (Hoy) ---------- */
+  /* Pausar y reanudar piden confirmación en dos pasos: el primer toque pregunta, "Sí, pausar" escribe. */
+  function pausarAgente(id) {
+    var x = S.ag && S.ag.porId[id]; if (!x || !x.conDoc || S.ui.agBusy[id]) return;
+    var nuevo = !x.agente.pausado, nombre = x.agente.nombre, ts = Date.now();
+    S.ui.agConfirm = null; S.ui.agBusy[id] = true; delete S.ui.agMsg[id]; renderAll();
+    cambiarPausaAgente(id, nuevo, ts).then(function () {
+      /* Ya quedó guardado: se muestra enseguida, sin esperar el aviso de la base (que trae lo mismo). */
+      S.agentes.forEach(function (a) { if (a.id === id) { a.pausado = nuevo; a.pausadoTs = ts; } });
+      S.ui.agMsg[id] = { ok: true, t: nuevo ? 'Pausaste a ' + nombre + '. En su próxima corrida tiene que leer la pausa y no hacer nada.' : 'Reanudaste a ' + nombre + '.' };
+    }, function (e) { S.ui.agMsg[id] = { ok: false, t: mensajeError(e) }; }).then(function () {
+      delete S.ui.agBusy[id]; renderAll(); enfocar('#ag-lista [data-ag-pausa][data-id="' + id + '"]');
+    });
+  }
+  $('ag-lista').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-id]'); if (!b || b.disabled) return;
+    var id = b.getAttribute('data-id');
+    if (b.hasAttribute('data-ag-pausa')) { S.ui.agConfirm = id; delete S.ui.agMsg[id]; renderAll(); enfocar('#ag-lista [data-ag-si][data-id="' + id + '"]'); }
+    else if (b.hasAttribute('data-ag-no')) { S.ui.agConfirm = null; renderAll(); enfocar('#ag-lista [data-ag-pausa][data-id="' + id + '"]'); }
+    else if (b.hasAttribute('data-ag-si')) pausarAgente(id);
+    else if (b.hasAttribute('data-ag-diario')) {
+      S.ui.diarioModo = 'agente'; S.ui.diarioAgente = id; $('d-agente').checked = true;
+      irA('diario'); irAParte('operaciones');
+    }
+  });
+  $('ag-lista').addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-bit]')) S.ui.bitAbiertas[d.getAttribute('data-bit')] = d.open; }, true);
+  $('hoy-alertas').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-ir-ajustes]'); if (!b) return;
+    irA('diario'); irAParte('operaciones'); $('ajustes').open = true;
+    var dest = b.getAttribute('data-ir-ajustes') === 'agente' ? $('ag-ajustes') : $('ajustes');
+    try { dest.scrollIntoView({ block: 'start' }); } catch (e2) { }
+  });
+
   $('tb-ab-lista').addEventListener('click', function (e) {
     var b = e.target.closest('[data-ab]'); if (!b) return;
     var id = b.getAttribute('data-ab');
@@ -3494,7 +4154,8 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
 
   /* ---------- Eventos: diario y ajustes ---------- */
   document.querySelectorAll('input[name="d-per"]').forEach(function (el) { el.addEventListener('change', function () { S.ui.per = this.value; renderDiario(); renderRevision(); }); });
-  document.querySelectorAll('input[name="d-modo"]').forEach(function (el) { el.addEventListener('change', function () { S.ui.diarioModo = this.value === 'practica' ? 'practica' : 'real'; renderDiario(); renderRevision(); }); });
+  document.querySelectorAll('input[name="d-modo"]').forEach(function (el) { el.addEventListener('change', function () { S.ui.diarioModo = ['practica', 'agente'].indexOf(this.value) >= 0 ? this.value : 'real'; renderDiario(); renderRevision(); }); });
+  $('d-ag-sel').addEventListener('change', function () { S.ui.diarioAgente = this.value === '*' ? null : this.value; renderDiario(); });
   function irAParte(p) {
     if (PARTES_DIARIO.indexOf(p) < 0) p = 'operaciones';
     S.ui.diarioParte = p;
@@ -3523,7 +4184,22 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
   $('btnCsv').addEventListener('click', function () { ofrecerArchivo('diario-trading-' + claveDia(Date.now()) + '.csv', csv(), $('csvMsg'), $('csvTxt')); });
   $('btnJson').addEventListener('click', function () { ofrecerArchivo('respaldo-trading-' + claveDia(Date.now()) + '.json', respaldoJson(), $('csvMsg'), $('csvTxt')); });
 
-  document.querySelectorAll('#ajustes input').forEach(function (el) { el.addEventListener('input', function () { S.ui.cfgDirty = true; }); });
+  document.querySelectorAll('#ajustes input[id^="s-"]').forEach(function (el) { el.addEventListener('input', function () { S.ui.cfgDirty = true; }); });
+  document.querySelectorAll('#ag-ajustes input').forEach(function (el) { el.addEventListener('input', function () { S.ui.cfgAgDirty = true; }); });
+  /* Límites de la cuenta simulada de los agentes (config/agente): se guardan aparte de tus reglas, con su propio botón. */
+  $('btnGuardarAg').addEventListener('click', function () {
+    var msg = $('agCfgMsg'), c = {}, amb = false;
+    AGENTE_CAMPOS.forEach(function (k) { var a = analizarNum($('sa-' + k).value); if (a.amb) amb = true; c[k] = a.v; });
+    var err = amb ? 'Revisá los números: escribilos con coma decimal (por ejemplo 1,5).' : errorCfgAgente(c);
+    if (err) { msg.className = 'hint err'; msg.textContent = err; return; }
+    guardarCfgAgente(c).then(function () { S.ui.cfgAgDirty = false; msg.className = 'hint ok'; msg.textContent = 'Límites del agente guardados.'; renderAll(); }, function (e) { msg.className = 'hint err'; msg.textContent = mensajeError(e); });
+  });
+  $('btnResetAg').addEventListener('click', function () {
+    var msg = $('agCfgMsg'), b = this;
+    if (!S.ui.confirmResetAg) { S.ui.confirmResetAg = true; b.textContent = 'Tocá otra vez para volver a los valores de partida'; b.className = 'danger'; return; }
+    S.ui.confirmResetAg = false; b.textContent = 'Volver a los valores de partida'; b.className = 'ghost';
+    guardarCfgAgente(clone(AGENTE_DEF)).then(function () { S.ui.cfgAgDirty = false; msg.className = 'hint ok'; msg.textContent = 'Volviste a los valores de partida: capital $100, riesgo $2, día $6, acumulada $20, 3 abiertas y 1,5.'; renderAll(); }, function (e) { msg.className = 'hint err'; msg.textContent = mensajeError(e); });
+  });
   $('btnGuardarCfg').addEventListener('click', function () {
     var msg = $('cfgMsg'), c = {}, malo = null;
     CFG_CAMPOS.forEach(function (k) { var a = analizarNum($('s-' + k).value); if (!(a.v > 0) || a.amb) malo = malo || k; c[k] = a.v; });
@@ -3655,7 +4331,8 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
       };
       lista(SENALES, 500, 'senales'); lista(RESUMENES, 7, 'resumenes'); lista(REVISIONES, 52, 'revisiones'); // un año de revisiones semanales para la lista de anteriores
       escucharEventos(db);
-      CFGDOC.onSnapshot(function (snap) { S.cfg = normCfg(snap.exists ? snap.data() : null); renderAll(); }, function () { });
+      escucharAgentes(db);
+      CFGDOC.onSnapshot(function (snap) { var data = snap.exists ? clone(snap.data()) : null; S.cfg = normCfg(data); revisarSello('main', data); renderAll(); }, function () { });
     }, function () { modoLocal('No se pudo conectar el guardado. La calculadora funciona, pero nada se guarda.'); capacidadesListas(); });
   }
 
@@ -3671,8 +4348,15 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1rem;margin:0;letter-s
     practicaDeSenal: practicaDeSenal, normalizarCapturaSenal: normalizarCapturaSenal, promptCapturaSenal: promptCapturaSenal, esPractica: esPractica, soloReales: soloReales,
     FUENTES: FUENTES, DESCARTES: DESCARTES, LUZ_SENAL: LUZ_SENAL, SENAL_VIEJA_MIN: SENAL_VIEJA_MIN,
     estadisticas: estadisticas, agrupar: agrupar, VER_POR: VER_POR, enOrdenDeCierre: enOrdenDeCierre, quienAcierta: quienAcierta, porVentana: porVentana, avisoPocas: avisoPocas,
-    revisionesPorSemana: revisionesPorSemana, datosRevisionDe: datosRevisionDe, promptRevision: promptRevision, MIN_CONCLUSION: MIN_CONCLUSION };
+    revisionesPorSemana: revisionesPorSemana, datosRevisionDe: datosRevisionDe, promptRevision: promptRevision, MIN_CONCLUSION: MIN_CONCLUSION,
+    esDeAgente: esDeAgente, esPracticaPropia: esPracticaPropia, normCfgAgente: normCfgAgente, errorCfgAgente: errorCfgAgente, AGENTE_DEF: AGENTE_DEF, AGENTE_CAMPOS: AGENTE_CAMPOS,
+    normAgente: normAgente, estadoAgente: estadoAgente, ESTADOS_AGENTE: ESTADOS_AGENTE, AVATARES: AVATARES, avisoSinNoticias: avisoSinNoticias, cuandoCorto: cuandoCorto,
+    BITACORA_MAX: BITACORA_MAX, TIPOS_BITACORA: TIPOS_BITACORA, idBitacora: idBitacora, deBitacora: deBitacora, normEvento: normEvento, bitacoraPorDia: bitacoraPorDia, agregarEvento: agregarEvento,
+    eventoPausa: eventoPausa, historialPausas: historialPausas, pausadoEn: pausadoEn, costosDe: costosDe, validarOperacionAgente: validarOperacionAgente, cuentaAgente: cuentaAgente,
+    huellaAjustes: huellaAjustes, selloAjustes: selloAjustes, estadoSello: estadoSello, cambioFueraDeApp: cambioFueraDeApp, siguienteAlertaAjustes: siguienteAlertaAjustes,
+    textoAlertaAjustes: textoAlertaAjustes, CAMPOS_MAIN: CAMPOS_MAIN };
   aplicarTema(leerTema());
+  S.cfgAg = normCfgAgente(null);
   var tabIni = (location.hash || '').replace('#', '');
   if (TABS.indexOf(tabIni) < 0) { try { tabIni = localStorage.getItem('panel-trading-tab') || 'hoy'; } catch (e) { tabIni = 'hoy'; } }
   irA(tabIni);

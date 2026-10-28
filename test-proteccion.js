@@ -363,7 +363,8 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await pg.click('#t-diario'); await pg.evaluate(() => { document.getElementById('ajustes').open = true; });
     const reglas = await txt(pg, '#reglasLista');
     ok('reglas: muestra la pausa, la mitad, el dato macro y el fin de semana', /Pausa tras rachas: después de 2 operaciones cerradas seguidas con pérdida, 30 min sin entradas nuevas/.test(reglas) && /50 % del presupuesto diario/.test(reglas) && /a menos de 30 min/.test(reglas) && /Último día hábil de la semana/.test(reglas) && /Ya entré igual/.test(reglas), reglas);
-    ok('reglas: no se agregaron campos editables nuevos (no cambia cfg)', (await pg.$$('#ajustes input')).length === 16, (await pg.$$('#ajustes input')).length);
+    // Desde v3.8 Reglas y ajustes también tiene los límites del agente (otro documento, config/agente, con campos sa-*): se cuentan solo los de cfg (s-*).
+    ok('reglas: no se agregaron campos editables nuevos (no cambia cfg)', (await pg.$$('#ajustes input[id^="s-"]')).length === 16 && (await pg.$$('#ajustes input:not([id^="s-"]):not([id^="sa-"])')).length === 0, (await pg.$$('#ajustes input[id^="s-"]')).length);
     await ctx.close();
   }
 

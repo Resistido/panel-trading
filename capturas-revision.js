@@ -4,6 +4,8 @@
 // Abiertas con una operación de práctica y Diario en Práctica. El rojo es del momento (vale para todas las tarjetas a la vez): por eso va en su propia captura.
 // Diario en tres partes (v3.7), en claro y oscuro a 390 px: Estadísticas con menos de 20 operaciones (con el aviso) y con más de 20 (sin aviso),
 // Estadísticas en Práctica y Revisión con dos revisiones guardadas (la anterior abierta). Datos de datos-estadisticas.js.
+// Agentes (v3.8), en claro y oscuro a 390 px: Hoy con un agente investigando (Vigía), uno pausado (Búho) y uno sin noticias (Lince),
+// la bitácora de Vigía abierta y el Diario en Agente (Operaciones con los chips de fuera de límites, y Estadísticas). Datos de datos-agentes.js.
 // Uso: node capturas-revision.js <carpeta> [archivo]. Guarda los PNG en <carpeta>/revision-visual/.
 // Usa el simulador de test-panel.js, un reloj fijo (miércoles 14-oct-2026, 11:05 en Nueva York) y datos inventados.
 const { chromium } = require('playwright');
@@ -17,6 +19,7 @@ const MOCK = suite.slice(suite.indexOf('const MOCK = `') + 'const MOCK = `'.leng
 const { datosSemana, AHORA, NY } = require('./datos-tablero.js');
 const { adelantar } = require('./reloj-pruebas.js'); // saltos de reloj sin la carrera del reloj falso (ver el archivo)
 const DE = require('./datos-estadisticas.js');
+const DA = require('./datos-agentes.js');
 const BO = (m, d, h, mi) => Date.UTC(2026, m - 1, d, h + 4, mi); // Bolivia: UTC−4 todo el año
 // Una pérdida chica cerrada hoy a las 10:50: con la de MU (10:15) son dos seguidas → pausa hasta las 11:20.
 // Tres señales: NVDA cumple (verde), MU tiene el TP1 en 1:1,2 (ámbar) y AMD no dice el nivel de riesgo (ámbar).
@@ -179,6 +182,38 @@ fs.mkdirSync(salida, { recursive: true });
       await completa(c.pg, 390, path.join(salida, '390-' + t + '-' + nombre + '.png'));
     }
     await c.ctx.close();
+  }
+  // Agentes (v3.8): solo los datos de datos-agentes.js, con el reloj a las 11:05.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 860 }, deviceScaleFactor: 2 });
+    await ctx.addInitScript(MOCK);
+    const pg = await ctx.newPage();
+    pg.on('pageerror', e => errores.push(e.message));
+    await pg.clock.install({ time: AHORA });
+    await pg.goto('file://' + pagina);
+    await pg.waitForFunction(() => document.getElementById('v-title').textContent !== 'Cargando tus operaciones…', null, { timeout: 15000 });
+    await pg.evaluate(async ([a, t, b]) => { const db = await window.claude.use('db'); for (const [id, d] of a) await db.collection('agentes').doc(id).set(d); for (const [id, d] of t) await db.collection('trades').doc(id).set(d); for (const [id, d] of b) await db.collection('bitacora').doc(id).set(d); }, [DA.agentes(), DA.operaciones(), DA.bitacora()]);
+    await pg.evaluate(() => new Promise(r => setTimeout(r, 0))); // después de todos los avisos del simulador
+    await pg.waitForFunction(() => document.querySelectorAll('#ag-lista .ag').length === 3);
+    await pg.evaluate(() => document.fonts && document.fonts.ready);
+    for (const t of ['claro', 'oscuro']) {
+      await tema(pg, t);
+      await pg.click('#t-hoy');
+      await pg.evaluate(() => document.querySelectorAll('details.ag-bit').forEach(d => { d.open = false; }));
+      await completa(pg, 390, path.join(salida, '390-' + t + '-hoy-agentes.png'));
+      // La bitácora de Vigía abierta: la ventana al alto de la página (la barra de pestañas queda al final) y solo el bloque de agentes.
+      await pg.evaluate(() => { document.querySelector('[data-ag="vigia"] details.ag-bit').open = true; });
+      await pg.setViewportSize({ width: 390, height: await pg.evaluate(() => document.documentElement.scrollHeight) });
+      await pg.waitForTimeout(60);
+      await (await pg.$('#agentes-box')).screenshot({ path: path.join(salida, '390-' + t + '-bitacora.png') });
+      await pg.setViewportSize({ width: 390, height: 860 });
+      await pg.click('#t-diario'); await pg.click('label[for="d-agente"]'); await pg.click('label[for="d-p-ops"]'); await pg.waitForTimeout(80);
+      await completa(pg, 390, path.join(salida, '390-' + t + '-diario-agente.png'));
+      await pg.click('label[for="d-p-est"]'); await pg.waitForTimeout(80);
+      await completa(pg, 390, path.join(salida, '390-' + t + '-diario-agente-estadisticas.png'));
+      await pg.click('label[for="d-p-ops"]'); await pg.click('label[for="d-real"]');
+    }
+    await ctx.close();
   }
   const g = await preparar(1280);
   for (const t of ['claro', 'oscuro']) {

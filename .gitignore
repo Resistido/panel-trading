@@ -12,5 +12,6 @@ test-centinela-page.html
 test-proteccion-page.html
 test-senales-page.html
 test-estadisticas-page.html
+test-agentes-page.html
 resultado-*.json
 shot-*.png
