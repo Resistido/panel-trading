@@ -53,7 +53,12 @@ const H = DA.H;
     await pg.evaluate(async ([c, d]) => { const db = await window.claude.use('db'); for (const [id, x] of d) await db.collection(c).doc(id).set(x); }, [col, docs]);
     await tras(pg);
   };
-  const sembrarAgentes = async (pg) => { await sembrar(pg, 'agentes', DA.agentes()); await sembrar(pg, 'trades', DA.operaciones()); await sembrar(pg, 'bitacora', DA.bitacora()); };
+  // Espera a que la página muestre un estado (sin dormir un tiempo fijo). Si no llega en 10 s, la comprobación que sigue lo reporta como falla.
+  const esperar = (pg, fn, arg) => pg.waitForFunction(fn, arg, { timeout: 10000 }).catch(() => null);
+  // Los datos de ejemplo ya dibujados: los agentes, sus operaciones (contadores) y su bitácora.
+  const listos = (pg) => esperar(pg, () => { const v = document.querySelector('[data-ag="vigia"]'), b = document.querySelector('[data-ag="buho"]');
+    return !!v && !!b && /Fuera de límites: 2/.test(v.textContent) && /6 eventos hoy/.test(v.textContent) && /Fuera de límites: 1/.test(b.textContent); });
+  const sembrarAgentes = async (pg) => { await sembrar(pg, 'agentes', DA.agentes()); await sembrar(pg, 'trades', DA.operaciones()); await sembrar(pg, 'bitacora', DA.bitacora()); await listos(pg); };
   const doc = (pg, k) => pg.evaluate((x) => { const v = window.__mockStore.get(x); return v === undefined ? null : JSON.parse(JSON.stringify(v)); }, k);
   const txt = (pg, sel) => pg.textContent(sel);
   const visible = (pg, sel) => pg.evaluate((s) => { const e = document.querySelector(s); return !!e && e.getBoundingClientRect().height > 0; }, sel);
@@ -333,6 +338,7 @@ const H = DA.H;
     ok('pausado: la tarjeta dice "En pausa · la pausaste vos", ofrece Reanudar y avisa qué tiene que hacer el agente', v.estado === 'En pausa · la pausaste vos' && v.botones[0] === 'Reanudar' && v.msg === 'Pausaste a Vigía. En su próxima corrida tiene que leer la pausa y no hacer nada.' && v.avEstado === 'pausado', v);
     // Una operación que el agente escribe después de la pausa queda fuera de límites; las de antes siguen contando
     await sembrar(pg, 'trades', [DA.op('ag-v6', { agente: 'vigia', activo: 'INTC', entra: H(14, 11, 10), entrada: 20, sl1: 19, tp1: 21.5, tp2: 23, unidades: 2 })]);
+    await esperar(pg, () => /Fuera de límites: 3/.test(document.querySelector('[data-ag="vigia"] .ag-cont').textContent));
     v = await tarjeta(pg, 'vigia');
     ok('pausado: la que escribe después queda "Fuera de límites" (3) y el saldo no cambia', /^Fuera de límites: 3/.test(v.cont) && v.dat['Saldo virtual'] === '$100,65capital $100,00', v);
     // Reanudar, también en dos pasos
@@ -398,7 +404,7 @@ const H = DA.H;
     await sembrarAgentes(pg);
     const muchos = Array.from({ length: 250 }, (_, i) => ({ ts: H(14, 6, 0) + i * 60000, tipo: ['investiga', 'analiza', 'propone', 'registra', 'riesgo', 'error', 'resumen'][i % 7], texto: 'Paso ' + (i + 1) }));
     await sembrar(pg, 'bitacora', [['lince-2026-10-14', { agente: 'lince', dia: '2026-10-14', ts: H(14, 10, 9), eventos: muchos }]]);
-    await pg.waitForFunction(() => document.querySelectorAll('#ag-lista .ag').length === 3);
+    await esperar(pg, () => /250 eventos hoy/.test(document.querySelector('[data-ag="lince"] details.ag-bit > summary').textContent));
     ok('bitácora: cerrada al llegar, con cuántos eventos hay hoy', !(await pg.evaluate(() => document.querySelector('[data-ag="vigia"] details.ag-bit').open)) && (await tarjeta(pg, 'vigia')).bit === 'Bitácora 6 eventos hoy', null);
     await pg.click('[data-ag="vigia"] details.ag-bit > summary');
     const dias = await pg.$$eval('[data-ag="vigia"] .bit-dia', l => l.map(d => ({ h: d.querySelector('h4').textContent, ev: [...d.querySelectorAll('.bit-ev')].map(e => ({ tipo: e.getAttribute('data-tipo'), t: e.querySelector('.bit-t').textContent, p: e.querySelector('p:last-child').textContent, ico: !!e.querySelector(':scope > svg') })) })));
@@ -521,6 +527,7 @@ const H = DA.H;
     const cag = await doc(pg, 'config/agente');
     ok('límites del agente: config/agente con los seis valores y el sello de la app', cag.riesgoOp === 3 && cag.capital === 100 && cag.rrMin === 1.5 && cag.cambio.origen === 'app' && Object.keys(cag).sort().join() === 'cambio,capital,maxAbiertas,perdidaDia,perdidaMax,riesgoOp,rrMin', cag);
     await pg.click('#t-hoy');
+    await esperar(pg, () => /Fuera de límites: 1/.test(document.querySelector('[data-ag="vigia"] .ag-cont').textContent));
     ok('límites del agente: con riesgo $3 el RIVN de Vigía ya cumple (fuera de límites 1) y no hay aviso', /^Fuera de límites: 1/.test((await tarjeta(pg, 'vigia')).cont) && (await txt(pg, '#hoy-alertas')) === '', (await tarjeta(pg, 'vigia')).cont);
     await pg.evaluate(async () => { const db = await window.claude.use('db'); await db.doc('config/agente').set({ capital: 100, riesgoOp: 50, perdidaDia: 60, perdidaMax: 90, maxAbiertas: 10, rrMin: 1 }); });
     await tras(pg);
@@ -606,10 +613,12 @@ const H = DA.H;
     await sembrar(r.pg, 'trades', Array.from({ length: 10 }, (_, i) => DA.op('z' + i, { agente: 'zorro', activo: 'ACT' + i, entra: H(5 + Math.floor(i / 3), 10, (i % 3) * 15), entrada: 20, sl1: 19, tp1: 21.5, tp2: 23, unidades: 2, sale: H(5 + Math.floor(i / 3), 10, (i % 3) * 15 + 5), precio: 19, pnl: -2 })));
     await sembrar(r.pg, 'trades', [DA.op('zx', { agente: 'zorro', activo: 'LARGO', entra: H(14, 10, 0), entrada: 50, sl1: 40, tp1: 55, unidades: 9 })]);
     await r.pg.waitForFunction(() => document.querySelectorAll('#ag-lista .ag').length === 4);
+    await esperar(r.pg, () => /^Experimento detenido/.test((document.querySelector('[data-ag="zorro"] .ag-aviso[data-luz="rojo"]') || {}).textContent || '') && /Fuera de límites: 1/.test(document.querySelector('[data-ag="zorro"] .ag-cont').textContent));
     if (ancho === 390) ok('detenido: la tarjeta dice "Experimento detenido por pérdida máxima" en rojo y no avisa "sin noticias"', /^Experimento detenido por pérdida máxima\. La pérdida acumulada llegó a \$20,00/.test((await tarjeta(r.pg, 'zorro')).rojo) && (await tarjeta(r.pg, 'zorro')).ambar === null, await tarjeta(r.pg, 'zorro'));
     await r.pg.evaluate(() => document.querySelectorAll('details.ag-det').forEach(d => { d.open = true; }));
     await r.pg.evaluate(async () => { const db = await window.claude.use('db'); await db.doc('config/agente').update({ riesgoOp: 2.5 }); }); // aviso rojo de ajustes a la vista
     await tras(r.pg);
+    await esperar(r.pg, () => !!document.querySelector('#hoy-alertas .aviso-r'));
     for (const tema of ['claro', 'oscuro']) {
       await r.pg.click('label[for="tema-' + tema + '"]');
       await r.pg.click('#t-hoy');
